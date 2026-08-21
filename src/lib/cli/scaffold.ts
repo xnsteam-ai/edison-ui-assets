@@ -1,14 +1,19 @@
 import {
   getRegistryTypeFolder,
   publicRegistryItemTypes,
+  registryDomains,
+  type RegistryDomain,
   type RegistryItemType,
 } from "../registry/item-types";
 import { stripCodeExtension } from "../registry/paths";
 
 export type RegistryScaffoldItemType = RegistryItemType;
 
+export const registryScaffoldDomains = registryDomains;
+
 export type RegistryScaffoldInput = {
   type: RegistryScaffoldItemType;
+  domain: RegistryDomain;
   name: string;
   title: string;
   description: string;
@@ -172,8 +177,10 @@ function validateRegistryScaffoldInput(input: RegistryScaffoldInput): void {
   }
 }
 
-function getRegistryScaffoldItemRoot(input: Pick<RegistryScaffoldInput, "name" | "type">): string {
-  return `registry/items/${getRegistryTypeFolder(input.type)}/${input.name}`;
+function getRegistryScaffoldItemRoot(
+  input: Pick<RegistryScaffoldInput, "domain" | "name" | "type">,
+): string {
+  return `registry/items/${input.domain}/${getRegistryTypeFolder(input.type)}/${input.name}`;
 }
 
 function getRegistryScaffoldSourcePath(

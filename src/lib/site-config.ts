@@ -1,4 +1,5 @@
-import { registryConfig } from "../../registry/config.ts";
+import { registryConfig, subRegistries } from "../../registry/config.ts";
+import type { RegistryDomain } from "./registry/item-types.ts";
 
 const registryPathConfig = {
   indexPath: "/registry.json",
@@ -10,7 +11,30 @@ const registryPathConfig = {
 export const siteConfig = {
   ...registryConfig,
   registry: registryPathConfig,
+  subRegistries,
 } as const;
+
+export function getCanonicalDomainRegistryIndexUrl(domain: RegistryDomain): string {
+  return `${getSiteOrigin()}${getCanonicalDomainRegistryIndexPath(domain)}`;
+}
+
+export function getCanonicalDomainRegistryItemUrl(
+  domain: RegistryDomain,
+  itemName: string,
+): string {
+  return `${getSiteOrigin()}${getCanonicalDomainRegistryItemPath(domain, itemName)}`;
+}
+
+export function getCanonicalDomainRegistryIndexPath(domain: RegistryDomain): string {
+  return normalizeSitePath(`/r/${domain}/registry.json`);
+}
+
+export function getCanonicalDomainRegistryItemPath(
+  domain: RegistryDomain,
+  itemName: string,
+): string {
+  return normalizeSitePath(`/r/${domain}/${encodeURIComponent(itemName)}.json`);
+}
 
 export function getCanonicalRegistryIndexUrl(): string {
   return `${getSiteOrigin()}${getCanonicalRegistryIndexPath()}`;

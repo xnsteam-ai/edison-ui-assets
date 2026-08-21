@@ -1,3 +1,4 @@
+import { defaultRegistryDomain, isRegistryDomain, type RegistryDomain } from "./item-types.ts";
 import type { RegistryFileType } from "./metadata";
 
 const shadcnDefaultTargetSegmentsByFileType: Partial<Record<RegistryFileType, string>> = {
@@ -24,6 +25,14 @@ export function getFileName(path: string): string {
 
 export function getParentPath(path: string): string {
   return path.replace(/\\/gu, "/").split("/").slice(0, -1).join("/");
+}
+
+/** Reads the `{domain}` segment from a `registry/items/{domain}/...` path. */
+export function getRegistryDomainFromPath(path: string): RegistryDomain {
+  const segments = path.replace(/\\/gu, "/").split("/");
+  const domain = segments[0] === "registry" && segments[1] === "items" ? segments[2] : undefined;
+
+  return isRegistryDomain(domain) ? domain : defaultRegistryDomain;
 }
 
 export function normalizePath(segments: readonly string[]): string {

@@ -5,7 +5,7 @@ import {
   createRegistryMetadataItemsFromEntries,
   type RegistryCatalogItem,
 } from "./catalog-builder";
-import { registryCatalog } from "./item-types";
+import { registryCatalog, type RegistryDomain } from "./item-types";
 
 export type RegistryCatalogWithItems = typeof registryCatalog & {
   items: RegistryCatalogItem[];
@@ -27,6 +27,10 @@ export function getRegistryItemsByTypes(
   const typeSet = new Set(types);
 
   return registryItems.filter((item) => typeSet.has(item.type));
+}
+
+export function getRegistryItemsByDomain(domain: RegistryDomain): RegistryCatalogItem[] {
+  return registryItems.filter((item) => item.registryDomain === domain);
 }
 
 export function getRegistryCatalogWithItems(): RegistryCatalogWithItems {

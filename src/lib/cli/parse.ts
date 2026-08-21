@@ -2,6 +2,7 @@ import { cac } from "cac";
 
 export type RegistryNewCliOptionName =
   | "description"
+  | "domain"
   | "fileExtension"
   | "fontDependency"
   | "fontFamily"
@@ -18,6 +19,7 @@ export type RegistryNewCliOptionName =
 /** Options as `--name <flag>` strings for cac (angled brackets = value required when flag is used). */
 const registryNewCliOptionSpecs = [
   "--description <description>",
+  "--domain <domain>",
   "--file-extension <fileExtension>",
   "--font-dependency <fontDependency>",
   "--font-family <fontFamily>",
@@ -36,6 +38,7 @@ const registryNewArgvPrefix = ["node", "registry-new"] as const;
 
 const registryNewCliOptionNames = [
   "description",
+  "domain",
   "fileExtension",
   "fontDependency",
   "fontFamily",
@@ -123,6 +126,8 @@ function getRegistryNewCliOptionName(flag: string): RegistryNewCliOptionName | u
   switch (flag) {
     case "--description":
       return "description";
+    case "--domain":
+      return "domain";
     case "--file-extension":
       return "fileExtension";
     case "--font-dependency":

@@ -30,6 +30,8 @@ import { Route as DocsChar123slugChar125DotmdRouteImport } from './routes/docs.{
 import { Route as DocsSlugRouteImport } from './routes/docs.$slug'
 import { Route as SectionChar123nameChar125DotmdRouteImport } from './routes/$section.{$name}[.]md'
 import { Route as SectionNameRouteImport } from './routes/$section.$name'
+import { Route as RDomainChar123nameChar125DotjsonRouteImport } from './routes/r/$domain/{$name}[.]json'
+import { Route as RDomainRegistryDotjsonRouteImport } from './routes/r/$domain/registry[.]json'
 
 const UtilitiesDotmdRoute = UtilitiesDotmdRouteImport.update({
   id: '/utilities.md',
@@ -140,6 +142,17 @@ const SectionNameRoute = SectionNameRouteImport.update({
   path: '/$section/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RDomainChar123nameChar125DotjsonRoute =
+  RDomainChar123nameChar125DotjsonRouteImport.update({
+    id: '/r/$domain/{$name}.json',
+    path: '/r/$domain/{$name}.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const RDomainRegistryDotjsonRoute = RDomainRegistryDotjsonRouteImport.update({
+  id: '/r/$domain/registry.json',
+  path: '/r/$domain/registry.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -163,6 +176,8 @@ export interface FileRoutesByFullPath {
   '/$section/': typeof SectionIndexRoute
   '/docs/': typeof DocsIndexRoute
   '/registry/': typeof RegistryIndexRoute
+  '/r/$domain/registry.json': typeof RDomainRegistryDotjsonRoute
+  '/r/$domain/{$name}.json': typeof RDomainChar123nameChar125DotjsonRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -186,6 +201,8 @@ export interface FileRoutesByTo {
   '/$section': typeof SectionIndexRoute
   '/docs': typeof DocsIndexRoute
   '/registry': typeof RegistryIndexRoute
+  '/r/$domain/registry.json': typeof RDomainRegistryDotjsonRoute
+  '/r/$domain/{$name}.json': typeof RDomainChar123nameChar125DotjsonRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -210,6 +227,8 @@ export interface FileRoutesById {
   '/$section/': typeof SectionIndexRoute
   '/docs/': typeof DocsIndexRoute
   '/registry/': typeof RegistryIndexRoute
+  '/r/$domain/registry.json': typeof RDomainRegistryDotjsonRoute
+  '/r/$domain/{$name}.json': typeof RDomainChar123nameChar125DotjsonRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -235,6 +254,8 @@ export interface FileRouteTypes {
     | '/$section/'
     | '/docs/'
     | '/registry/'
+    | '/r/$domain/registry.json'
+    | '/r/$domain/{$name}.json'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -258,6 +279,8 @@ export interface FileRouteTypes {
     | '/$section'
     | '/docs'
     | '/registry'
+    | '/r/$domain/registry.json'
+    | '/r/$domain/{$name}.json'
   id:
     | '__root__'
     | '/'
@@ -281,6 +304,8 @@ export interface FileRouteTypes {
     | '/$section/'
     | '/docs/'
     | '/registry/'
+    | '/r/$domain/registry.json'
+    | '/r/$domain/{$name}.json'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -305,6 +330,8 @@ export interface RootRouteChildren {
   SectionIndexRoute: typeof SectionIndexRoute
   DocsIndexRoute: typeof DocsIndexRoute
   RegistryIndexRoute: typeof RegistryIndexRoute
+  RDomainRegistryDotjsonRoute: typeof RDomainRegistryDotjsonRoute
+  RDomainChar123nameChar125DotjsonRoute: typeof RDomainChar123nameChar125DotjsonRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -456,6 +483,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SectionNameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/r/$domain/{$name}.json': {
+      id: '/r/$domain/{$name}.json'
+      path: '/r/$domain/{$name}.json'
+      fullPath: '/r/$domain/{$name}.json'
+      preLoaderRoute: typeof RDomainChar123nameChar125DotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/r/$domain/registry.json': {
+      id: '/r/$domain/registry.json'
+      path: '/r/$domain/registry.json'
+      fullPath: '/r/$domain/registry.json'
+      preLoaderRoute: typeof RDomainRegistryDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -481,6 +522,8 @@ const rootRouteChildren: RootRouteChildren = {
   SectionIndexRoute: SectionIndexRoute,
   DocsIndexRoute: DocsIndexRoute,
   RegistryIndexRoute: RegistryIndexRoute,
+  RDomainRegistryDotjsonRoute: RDomainRegistryDotjsonRoute,
+  RDomainChar123nameChar125DotjsonRoute: RDomainChar123nameChar125DotjsonRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

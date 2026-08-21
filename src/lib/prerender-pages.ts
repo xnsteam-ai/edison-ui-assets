@@ -3,13 +3,16 @@ import { relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { getDocsRoutePathFromSourcePath } from "./docs/catalog-core.ts";
-import { registryCatalog, type RegistryItemType } from "./registry/item-types.ts";
+import { registryCatalog, registryDomains, type RegistryItemType } from "./registry/item-types.ts";
 import { parseRegistryMdx } from "./registry/mdx.ts";
+import { getRegistryDomainFromPath } from "./registry/paths.ts";
 import { getRegistryItemRoutePath, getRegistrySectionsWithItems } from "./registry/sections.ts";
 import { shouldExcludeFromSitemap } from "./seo.ts";
 import {
   getAliasRegistryIndexPaths,
   getAliasRegistryItemPaths,
+  getCanonicalDomainRegistryIndexPath,
+  getCanonicalDomainRegistryItemPath,
   getCanonicalRegistryIndexPath,
   getCanonicalRegistryItemPath,
   getDocsMarkdownPath,
@@ -25,6 +28,7 @@ type PrerenderPage = {
 type RegistryPrerenderItem = {
   name: string;
   type: RegistryItemType;
+  domain: (typeof registryDomains)[number];
 };
 
 type PrerenderPagesInput = {
@@ -71,8 +75,13 @@ export function createPrerenderPages({
     addPath(getDocsMarkdownPath(docsPath));
   }
 
+  for (const domain of registryDomains) {
+    addPath(getCanonicalDomainRegistryIndexPath(domain));
+  }
+
   for (const item of registryItems) {
     addPath(getCanonicalRegistryItemPath(item.name));
+    addPath(getCanonicalDomainRegistryItemPath(item.domain, item.name));
     getAliasRegistryItemPaths(item.name).forEach(addPath);
 
     const itemPath = getRegistryItemRoutePath(item);
@@ -118,6 +127,7 @@ function getRegistryPrerenderItem(path: string): RegistryPrerenderItem {
   return {
     name: item.name,
     type: item.type,
+    domain: getRegistryDomainFromPath(toPosixPath(relative(process.cwd(), path))),
   };
 }
 

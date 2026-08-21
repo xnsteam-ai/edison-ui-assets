@@ -55,6 +55,17 @@ export const registryCatalog = {
   basePath: "/registry",
 } as const;
 
+/** Top-level `registry/items/{domain}/...` folder names. Each domain is its own installable sub-registry. */
+export const registryDomains = ["components", "icons", "fonts", "media"] as const;
+
+export type RegistryDomain = (typeof registryDomains)[number];
+
+export const defaultRegistryDomain: RegistryDomain = "components";
+
+export function isRegistryDomain(value: unknown): value is RegistryDomain {
+  return typeof value === "string" && registryDomains.some((domain) => domain === value);
+}
+
 export function isPublicRegistryItemType(value: unknown): value is RegistryItemType {
   return (
     typeof value === "string" &&

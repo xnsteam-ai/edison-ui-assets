@@ -3,10 +3,12 @@ import {
   registrySchema as shadcnRegistrySchema,
 } from "shadcn/schema";
 
-import { getRegistryItem, registryItems } from "./catalog";
+import { getRegistryItem, getRegistryItemsByDomain, registryItems } from "./catalog";
 import type { RegistryCatalogItem } from "./catalog-builder";
 import { getRegistryDisplaySource } from "./display-source.server";
+import type { RegistryDomain } from "./item-types";
 import {
+  getDomainRegistryConfig,
   registryConfig,
   registryItemSchema,
   type RegistryFileDefinition,
@@ -19,7 +21,10 @@ const registryJsonResponseHeaders = {
   "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
 } as const;
 
-type RegistryIndexJson = typeof registryConfig & {
+type RegistryIndexJson = {
+  $schema: string;
+  name: string;
+  homepage: string;
   items: RegistryItemDefinition[];
 };
 
@@ -79,6 +84,46 @@ export function getRegistryIndexJsonResponse(): Response {
   return Response.json(getRegistryIndexJson(), {
     headers: registryJsonResponseHeaders,
   });
+}
+
+export function getDomainRegistryIndexJsonResponse(domain: RegistryDomain): Response {
+  return Response.json(getDomainRegistryIndexJson(domain), {
+    headers: registryJsonResponseHeaders,
+  });
+}
+
+export function getDomainRegistryItemJsonResponse(domain: RegistryDomain, name: string): Response {
+  const item = getDomainRegistryItemJson(domain, name);
+
+  if (!item) {
+    return Response.json(
+      { error: "Registry item not found." },
+      {
+        headers: registryJsonResponseHeaders,
+        status: 404,
+      },
+    );
+  }
+
+  return Response.json(item, {
+    headers: registryJsonResponseHeaders,
+  });
+}
+
+export function getDomainRegistryIndexJson(domain: RegistryDomain): RegistryIndexJson {
+  return {
+    ...getDomainRegistryConfig(domain),
+    items: getRegistryItemsByDomain(domain).map(toRegistryItemDefinition),
+  };
+}
+
+export function getDomainRegistryItemJson(
+  domain: RegistryDomain,
+  name: string,
+): RegistryItemJson | null {
+  const item = getRegistryItem(name);
+
+  return item && item.registryDomain === domain ? toRegistryItemJson(item) : null;
 }
 
 export function getRegistryItemJsonResponse(name: string): Response {

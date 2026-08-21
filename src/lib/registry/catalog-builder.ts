@@ -1,4 +1,5 @@
 import { compareRegistryItemNames, getDefaultRegistryTitle } from "./item-title";
+import type { RegistryDomain } from "./item-types";
 import { parseRegistryMdx } from "./mdx";
 import type {
   RegistryFileAuthoringDefinition,
@@ -11,6 +12,7 @@ import {
   getDefaultRegistryFilePublicPath,
   getFileName,
   getParentPath,
+  getRegistryDomainFromPath,
   getRegistryFileTarget,
   getRegistryFilePublicPath,
   isInvalidRegistryRelativePath,
@@ -50,6 +52,7 @@ export type RegistryPreviewSourceFile = {
 
 export type RegistryCatalogItem = RegistryDisplayItem & {
   registryMdxFilePath: string;
+  registryDomain: RegistryDomain;
   sourceFiles: RegistrySourceFile[];
   previewSourceFile: RegistryPreviewSourceFile;
   hasPreview: boolean;
@@ -130,6 +133,7 @@ function toRegistryCatalogItem(
   return {
     ...catalogItem,
     registryMdxFilePath: entry.path,
+    registryDomain: getRegistryDomainFromPath(entry.path),
     sourceFiles: catalogItem.files.map((file) => {
       const sourceFile = sourceFileDefinitionsByPath.get(file.path);
 

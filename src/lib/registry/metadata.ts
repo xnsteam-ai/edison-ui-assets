@@ -5,13 +5,21 @@ import type {
 } from "shadcn/schema";
 
 import { siteConfig } from "../site-config";
-import type { PrivateRegistryItemType, RegistryItemType } from "./item-types";
+import type { PrivateRegistryItemType, RegistryDomain, RegistryItemType } from "./item-types";
 
 export const registryConfig = {
   $schema: "https://ui.shadcn.com/schema/registry.json",
   name: siteConfig.registryName,
   homepage: siteConfig.homepage,
 } as const;
+
+export function getDomainRegistryConfig(domain: RegistryDomain) {
+  return {
+    $schema: "https://ui.shadcn.com/schema/registry.json",
+    name: siteConfig.subRegistries[domain].name,
+    homepage: siteConfig.homepage,
+  } as const;
+}
 
 export const registryItemSchema = "https://ui.shadcn.com/schema/registry-item.json";
 

@@ -329,8 +329,9 @@ function getRegistryItemRoots(files: Readonly<Record<string, string>>): string[]
   for (const path of Object.keys(files)) {
     const segments = path.split("/");
 
-    if (segments[0] === "registry" && segments[1] === "items" && segments.length >= 4) {
-      roots.add(segments.slice(0, 4).join("/"));
+    // registry/items/{domain}/{type-folder}/{name}/...
+    if (segments[0] === "registry" && segments[1] === "items" && segments.length >= 5) {
+      roots.add(segments.slice(0, 5).join("/"));
     }
   }
 

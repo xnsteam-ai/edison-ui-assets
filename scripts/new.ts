@@ -13,6 +13,7 @@ import {
   createRegistryScaffoldPlan,
   getDefaultRegistryScaffoldTitle,
   getRegistryScaffoldConflicts,
+  registryScaffoldDomains,
   registryScaffoldFileExtensions,
   registryScaffoldItemTypes,
   validateRegistryScaffoldFileExtension,
@@ -23,6 +24,7 @@ import {
   type RegistryScaffoldItemType,
   type RegistryScaffoldPlan,
 } from "../src/lib/cli/scaffold";
+import type { RegistryDomain } from "../src/lib/registry/item-types";
 
 const cliArgs = process.argv.slice(2);
 
@@ -69,6 +71,16 @@ note(scaffoldPlan.files.map((file) => file.path).join("\n"), "Created files");
 outro(`Created ${input.name}.`);
 
 async function promptRegistryScaffoldInput(): Promise<RegistryScaffoldInput> {
+  const domain = await promptValue(
+    select<RegistryDomain>({
+      message: "Which registry?",
+      options: registryScaffoldDomains.map((value) => ({
+        value,
+        label: value,
+      })),
+      initialValue: "components",
+    }),
+  );
   const type = await promptValue(
     select<RegistryScaffoldItemType>({
       message: "What type of registry item?",
@@ -130,6 +142,7 @@ async function promptRegistryScaffoldInput(): Promise<RegistryScaffoldInput> {
 
   return {
     type,
+    domain,
     name,
     title,
     description,
@@ -187,6 +200,7 @@ async function promptValue<T>(prompt: Promise<T | symbol>): Promise<T> {
 function parseRegistryScaffoldInput(rawArgs: string[]): RegistryScaffoldInput {
   const options = parseRegistryNewScriptCliArgs(rawArgs);
   const type = parseRegistryScaffoldItemType(options.type ?? "registry:ui");
+  const domain = parseRegistryScaffoldDomain(options.domain ?? "components");
   const name = requireOption(options.name, "--name");
   const description = requireOption(options.description, "--description");
   const title = options.title ?? getDefaultRegistryScaffoldTitle(name);
@@ -214,6 +228,7 @@ function parseRegistryScaffoldInput(rawArgs: string[]): RegistryScaffoldInput {
 
   return {
     type,
+    domain,
     name,
     title,
     description,
@@ -223,6 +238,16 @@ function parseRegistryScaffoldInput(rawArgs: string[]): RegistryScaffoldInput {
       : {}),
     ...(font ? { font } : {}),
   };
+}
+
+function parseRegistryScaffoldDomain(value: string): RegistryDomain {
+  for (const domain of registryScaffoldDomains) {
+    if (domain === value) {
+      return domain;
+    }
+  }
+
+  throw new Error(`Unsupported registry domain: ${value}`);
 }
 
 function parseRegistryScaffoldFontInput(
@@ -322,6 +347,7 @@ Usage:
   bun --bun ./scripts/new.ts --type <type> --name <name> --description <description> [options]
 
 Options:
+  --domain <domain>             Which sub-registry to publish under. Defaults to components.
   --type <type>                 Registry item type. Defaults to registry:ui.
   --name <name>                 Kebab-case registry item name.
   --title <title>               Public title. Defaults from name.
@@ -337,6 +363,9 @@ Options:
   --font-selector <selector>    Optional selector for applying the font.
   --font-dependency <package>   Optional package for non-Next.js projects.
   -h, --help                    Show help.
+
+Domains:
+  ${registryScaffoldDomains.join(", ")}
 
 Types:
   ${registryScaffoldItemTypes.join(", ")}
