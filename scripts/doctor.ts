@@ -11,6 +11,9 @@ import {
 
 const registryRoot = join(process.cwd(), "registry");
 
+/** Binary assets are skipped: they are published as files, never parsed as source text. */
+const binaryAssetPattern = /\.(?:jpg|jpeg|png|gif|webp|avif|mp4|webm|woff2?|ttf|otf)$/iu;
+
 const files = await readRegistryFiles(registryRoot);
 const registryDiagnostics = getRegistryDiagnostics({ files });
 
@@ -26,6 +29,10 @@ async function readRegistryFiles(root: string): Promise<Record<string, string>> 
     cwd: root,
     onlyFiles: true,
   })) {
+    if (binaryAssetPattern.test(path)) {
+      continue;
+    }
+
     entries.push([toRegistryPath(path), await Bun.file(path).text()]);
   }
 

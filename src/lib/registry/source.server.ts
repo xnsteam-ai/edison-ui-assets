@@ -2,11 +2,16 @@ import { normalizeGlobFiles } from "../glob";
 import { registryItems } from "./catalog";
 import type { RegistryCatalogItem, RegistryPreviewSourceFile } from "./catalog-builder";
 
+/**
+ * Publishable source text. Binary assets (image items ship real files) are excluded — reading a
+ * JPEG with `?raw` would inline megabytes of mojibake into the client bundle.
+ */
 const registrySources = import.meta.glob<string>(
   [
     "../../../registry/items/**/*",
     "!../../../registry/items/**/_preview.tsx",
     "!../../../registry/items/**/_registry.mdx",
+    "!../../../registry/items/**/*.{jpg,jpeg,png,gif,webp,avif,mp4,webm,woff,woff2,ttf,otf}",
   ],
   {
     eager: true,

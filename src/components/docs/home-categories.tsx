@@ -22,6 +22,9 @@ export type HomeCategoryItem = {
   description: string;
   fontFamily?: string;
   controls?: RegistryControlDefinition[];
+  category?: string;
+  prompt?: string;
+  promptKind?: string;
 };
 
 /**
@@ -53,6 +56,23 @@ type CategoryFilter = "all" | RegistryDomain;
 const previewModules = import.meta.glob<React.ComponentType<Record<string, unknown>>>(
   "../../../registry/items/**/_preview.tsx",
   { eager: true, import: "Preview" },
+);
+
+/**
+ * Image items publish a real asset instead of a `_preview.tsx`. Vite resolves each to a hashed
+ * URL, so the gallery and dialog can render the actual file.
+ */
+const imageAssetModules = import.meta.glob<string>(
+  "../../../registry/items/images/**/*.{jpg,jpeg,png,webp,avif}",
+  { eager: true, import: "default", query: "?url" },
+);
+
+export const imageAssetsByItemName = new Map(
+  Object.entries(imageAssetModules).flatMap(([path, url]) => {
+    const itemName = path.replace(/\\/gu, "/").split("/").at(-2);
+
+    return itemName && url ? ([[itemName, url]] as const) : [];
+  }),
 );
 
 const previewsByItemName = new Map(
@@ -242,6 +262,7 @@ export function HomeCategories({ items }: HomeCategoriesProps) {
           onIndexChange={(index) => setPreview((state) => (state ? { ...state, index } : state))}
           onClose={() => setPreview(null)}
           iconNames={items.filter((entry) => entry.domain === "icons").map((entry) => entry.name)}
+          assetUrl={imageAssetsByItemName.get(preview.items[preview.index]?.name ?? "")}
           renderPreview={(name, previewValues) => {
             const Preview = previewsByItemName.get(name);
 
@@ -327,6 +348,7 @@ function ResourceTile({
   onOpen: () => void;
 }) {
   const Preview = previewsByItemName.get(item.name);
+  const assetUrl = imageAssetsByItemName.get(item.name);
   const itemHref = {
     to: "/$section/$name" as const,
     params: { section: getRegistrySectionIdForType(item.type), name: item.name },
@@ -519,7 +541,14 @@ function ResourceTile({
             : "grid place-items-center px-4 py-11",
         )}
       >
-        {Preview ? (
+        {assetUrl ? (
+          <img
+            src={assetUrl}
+            alt={item.title}
+            loading="lazy"
+            className="pointer-events-none size-full object-cover select-none"
+          />
+        ) : Preview ? (
           density === "specimen" ? (
             // The preview supplies its own backdrop, so let it bleed to the tile edges.
             <div className="pointer-events-none h-full w-full select-none [&>*]:h-full [&>*]:rounded-none">

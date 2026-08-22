@@ -27,6 +27,9 @@ function HomePage() {
     description: item.description,
     fontFamily: item.fontFamily,
     controls: item.controls,
+    category: item.category,
+    prompt: item.prompt,
+    promptKind: item.promptKind,
   }));
 
   return (

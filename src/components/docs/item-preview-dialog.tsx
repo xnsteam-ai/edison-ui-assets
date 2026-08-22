@@ -45,6 +45,9 @@ export type PreviewDialogItem = {
   description: string;
   fontFamily?: string;
   controls?: RegistryControlDefinition[];
+  category?: string;
+  prompt?: string;
+  promptKind?: string;
 };
 
 type ItemPreviewDialogProps = {
@@ -54,6 +57,7 @@ type ItemPreviewDialogProps = {
   onClose: () => void;
   renderPreview: (name: string, values: RegistryControlValues) => React.ReactNode;
   iconNames: readonly string[];
+  assetUrl?: string;
 };
 
 type CanvasTheme = "light" | "dark";
@@ -80,6 +84,7 @@ export function ItemPreviewDialog({
   onClose,
   renderPreview,
   iconNames,
+  assetUrl,
 }: ItemPreviewDialogProps) {
   const item = items[index];
   const itemName = item?.name;
@@ -132,6 +137,7 @@ export function ItemPreviewDialog({
   const isIcon = item.domain === "icons";
   const isFont = item.domain === "fonts" && Boolean(item.fontFamily);
   const isTemplate = item.domain === "templates";
+  const isImage = Boolean(assetUrl);
   const itemPath = `/${getRegistrySectionIdForType(item.type as never)}/${item.name}`;
   const namespaced = `${siteConfig.subRegistries[item.domain].namespace}/${item.name}`;
 
@@ -154,6 +160,95 @@ export function ItemPreviewDialog({
       tokenStyle[control.cssVar] =
         typeof value === "number" ? `${value}${control.unit ?? "px"}` : value;
     }
+  }
+
+  function download(blob: Blob, fileName: string) {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+
+    anchor.href = url;
+    anchor.download = fileName;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function exportOriginal() {
+    if (!assetUrl) return;
+
+    const response = await fetch(assetUrl);
+
+    download(await response.blob(), `${item.name}${extensionFrom(assetUrl)}`);
+  }
+
+  /** Genuine format conversion: decode the source and re-encode as PNG on a canvas. */
+  async function exportPng() {
+    if (!assetUrl) return;
+
+    const image = await loadImage(assetUrl);
+    const canvas = document.createElement("canvas");
+
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    canvas.getContext("2d")?.drawImage(image, 0, 0);
+
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+
+    if (blob) {
+      download(blob, `${item.name}.png`);
+    }
+  }
+
+  /**
+   * SVG wrapper, not a vectorization: the raster is embedded as a data URI so the file is a valid
+   * standalone SVG. Same pixels, larger file.
+   */
+  async function exportSvgWrapper() {
+    if (!assetUrl) return;
+
+    const response = await fetch(assetUrl);
+    const blob = await response.blob();
+    const dataUri = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+
+      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+      reader.readAsDataURL(blob);
+    });
+    const image = await loadImage(assetUrl);
+    const svg = [
+      `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`,
+      ` width="${image.naturalWidth}" height="${image.naturalHeight}"`,
+      ` viewBox="0 0 ${image.naturalWidth} ${image.naturalHeight}">`,
+      `<title>${escapeXml(item.title)}</title>`,
+      `<image href="${dataUri}" width="${image.naturalWidth}" height="${image.naturalHeight}" />`,
+      `</svg>`,
+    ].join("");
+
+    download(new Blob([svg], { type: "image/svg+xml" }), `${item.name}.svg`);
+  }
+
+  function exportPromptMarkdown() {
+    const kind = item.promptKind === "suggested" ? "Suggested prompt" : "Prompt";
+    const markdown = [
+      `# ${item.title}`,
+      "",
+      item.description || "_No description._",
+      "",
+      `- **Category:** ${item.category || "Uncategorised"}`,
+      `- **Item:** \`${namespaced}\``,
+      "",
+      `## ${kind}`,
+      "",
+      item.prompt ? ["```text", item.prompt, "```"].join("\n") : "_No prompt recorded._",
+      "",
+      item.promptKind === "suggested"
+        ? "> This prompt is a reconstruction that would produce a similar image, not the original generation prompt."
+        : "",
+      "",
+    ].join("\n");
+
+    download(new Blob([markdown], { type: "text/markdown" }), `${item.name}.md`);
   }
 
   async function copyLink() {
@@ -255,15 +350,40 @@ export function ItemPreviewDialog({
                 size="sm"
                 showLabel
               />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => void exportSource()}
-                disabled={exporting}
-              >
-                <IconDownload data-icon="inline-start" />
-                {exporting ? "Exporting…" : "Export"}
-              </Button>
+              {isImage ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger render={<Button variant="ghost" size="sm" />}>
+                    <IconDownload data-icon="inline-start" />
+                    Export
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-48">
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem closeOnClick onClick={() => void exportOriginal()}>
+                        Original image
+                      </DropdownMenuItem>
+                      <DropdownMenuItem closeOnClick onClick={() => void exportPng()}>
+                        PNG
+                      </DropdownMenuItem>
+                      <DropdownMenuItem closeOnClick onClick={() => void exportSvgWrapper()}>
+                        SVG wrapper
+                      </DropdownMenuItem>
+                      <DropdownMenuItem closeOnClick onClick={() => exportPromptMarkdown()}>
+                        Prompt as Markdown
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => void exportSource()}
+                  disabled={exporting}
+                >
+                  <IconDownload data-icon="inline-start" />
+                  {exporting ? "Exporting…" : "Export"}
+                </Button>
+              )}
               <Button variant="ghost" size="sm" onClick={() => void copyLink()}>
                 {linkCopied ? (
                   <IconCheck data-icon="inline-start" />
@@ -361,7 +481,13 @@ export function ItemPreviewDialog({
                       : {}),
                   }}
                 >
-                  {isFont ? (
+                  {isImage && assetUrl ? (
+                    <img
+                      src={assetUrl}
+                      alt={item.description || item.title}
+                      className="max-h-[60vh] w-auto max-w-full rounded-lg object-contain shadow-sm"
+                    />
+                  ) : isFont ? (
                     <span
                       style={{
                         fontFamily: item.fontFamily,
@@ -459,6 +585,48 @@ export function ItemPreviewDialog({
                     </Field>
                   ) : null}
                 </section>
+
+                {isImage ? (
+                  <section className="flex flex-col gap-3">
+                    <h3 className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                      Image
+                    </h3>
+                    <Field label="Category">
+                      <span className="inline-flex w-fit rounded-full bg-muted px-2.5 py-1 text-xs">
+                        {item.category || "Uncategorised"}
+                      </span>
+                    </Field>
+                    <Field label="Description">
+                      <p className="text-xs leading-relaxed text-muted-foreground">
+                        {item.description || "No description."}
+                      </p>
+                    </Field>
+                    <Field label={item.promptKind === "suggested" ? "Suggested prompt" : "Prompt"}>
+                      <div className="flex flex-col gap-1.5">
+                        <pre className="max-h-32 overflow-auto rounded-lg bg-muted p-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap text-muted-foreground">
+                          {item.prompt || "No prompt recorded."}
+                        </pre>
+                        {item.promptKind === "suggested" ? (
+                          <p className="text-[10px] text-muted-foreground">
+                            Reconstructed, not the original generation prompt.
+                          </p>
+                        ) : null}
+                        {item.prompt ? (
+                          <CopyButton
+                            value={item.prompt}
+                            copyLabel="Copy prompt"
+                            copiedLabel="Copied"
+                            resetDelay={2000}
+                            variant="outline"
+                            size="sm"
+                            showLabel
+                            className="w-fit"
+                          />
+                        ) : null}
+                      </div>
+                    </Field>
+                  </section>
+                ) : null}
 
                 {controls.length > 0 ? (
                   <PropertyControls
@@ -655,4 +823,29 @@ function Segmented<T extends string>({
       ))}
     </div>
   );
+}
+
+function extensionFrom(url: string): string {
+  const match = /\.(jpe?g|png|webp|avif)(?:\?|$)/iu.exec(url);
+
+  return match ? `.${match[1].toLowerCase()}` : ".jpg";
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Could not load image."));
+    image.src = src;
+  });
+}
+
+function escapeXml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }

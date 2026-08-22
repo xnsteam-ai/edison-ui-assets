@@ -91,6 +91,11 @@ const registryNavigationItems = defineCollection({
       fontFamily: item.font?.family ?? "",
       // Schema for the preview properties panel.
       controls: item.controls ?? [],
+      // Image items carry their prompt and category in `meta`. Flattened to primitives because
+      // this collection's type has to stay serializable.
+      category: readMetaString(item.meta, "category"),
+      prompt: readMetaString(item.meta, "prompt"),
+      promptKind: readMetaString(item.meta, "promptKind"),
     };
   },
 });
@@ -119,4 +124,15 @@ export default defineConfig({
 
 function getSourcePath(root: string, document: SourceDocument): string {
   return `${root}/${document._meta.filePath}`.replace(/\\/gu, "/");
+}
+
+/** Reads one string field out of an item's freeform `meta` map. */
+function readMetaString(meta: unknown, field: string): string {
+  if (typeof meta !== "object" || meta === null || Array.isArray(meta)) {
+    return "";
+  }
+
+  const value = (meta as Record<string, unknown>)[field];
+
+  return typeof value === "string" ? value : "";
 }

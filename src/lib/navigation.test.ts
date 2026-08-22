@@ -27,6 +27,9 @@ const fixtureRegistryItems: RegistryNavigationCatalogItem[] = [
     domain: "components",
     fontFamily: "",
     controls: [],
+    category: "",
+    prompt: "",
+    promptKind: "",
   },
   {
     name: "stats-grid",
@@ -36,6 +39,9 @@ const fixtureRegistryItems: RegistryNavigationCatalogItem[] = [
     domain: "components",
     fontFamily: "",
     controls: [],
+    category: "",
+    prompt: "",
+    promptKind: "",
   },
   {
     name: "use-clipboard",
@@ -45,6 +51,9 @@ const fixtureRegistryItems: RegistryNavigationCatalogItem[] = [
     domain: "components",
     fontFamily: "",
     controls: [],
+    category: "",
+    prompt: "",
+    promptKind: "",
   },
 ] as const;
 
