@@ -5,6 +5,7 @@ import { Link } from "@tanstack/react-router";
 import * as React from "react";
 
 import type { RegistryDomain, RegistryItemType } from "../../lib/registry/item-types";
+import { getRegistryTypeLabel } from "../../lib/registry/item-types";
 import { getRegistrySectionIdForType } from "../../lib/registry/sections";
 import { siteConfig } from "../../lib/site-config";
 import { cn } from "../../lib/utils";
@@ -26,8 +27,9 @@ export type HomeCategoryItem = {
  *              used for type specimens and media where the setting is the point.
  * `mark`     — container-less squircle: the artwork is the tile, no card chrome.
  * `art`      — soft tinted panel, no border: line illustrations with room to breathe.
+ * `card`     — thumbnail panel with the title and description set beneath it, no outer card.
  */
-type CategoryDensity = "preview" | "compact" | "specimen" | "mark" | "art";
+type CategoryDensity = "preview" | "compact" | "specimen" | "mark" | "art" | "card";
 
 type HomeCategory = {
   id: RegistryDomain;
@@ -70,7 +72,7 @@ const categories = [
     label: "Template",
     purpose: "Full-page and section templates composed from Stark components.",
     emptyHint: "Templates will appear here as they're published.",
-    density: "preview",
+    density: "card",
   },
   {
     id: "icons",
@@ -254,6 +256,8 @@ function CategoryGroup({
             category.density === "mark" &&
               "grid-cols-4 gap-x-6 gap-y-8 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10",
             category.density === "art" && "grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4",
+            category.density === "card" &&
+              "grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4",
             (category.density === "preview" || category.density === "specimen") &&
               "grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3",
           )}
@@ -279,6 +283,52 @@ function ResourceTile({ item, density }: { item: HomeCategoryItem; density: Cate
     to: "/$section/$name" as const,
     params: { section: getRegistrySectionIdForType(item.type), name: item.name },
   };
+
+  if (density === "card") {
+    return (
+      <div className="group relative flex flex-col gap-3">
+        {/* Only the thumbnail gets a panel; the caption sits on the page. */}
+        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted/50 transition-colors group-hover:bg-muted">
+          {Preview ? (
+            <div className="pointer-events-none absolute inset-0 select-none [&>*]:h-full [&>*]:w-full">
+              <Preview />
+            </div>
+          ) : (
+            <div className="grid size-full place-items-center text-xs text-muted-foreground">
+              No preview
+            </div>
+          )}
+
+          <span className="pointer-events-none absolute right-2 bottom-2 rounded-md bg-background/85 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground backdrop-blur-sm">
+            {getRegistryTypeLabel(item.type)}
+          </span>
+
+          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+            <CopyButton
+              value={() => getDomainInstallCommand(item.domain, item.name, "npm")}
+              copyLabel={`Copy install command for ${item.title}`}
+              copiedLabel="Copied"
+              resetDelay={2000}
+              variant="ghost"
+              size="icon-sm"
+              className="pointer-events-auto rounded-full bg-background/85 backdrop-blur-sm hover:bg-background"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <Link
+            {...itemHref}
+            className="text-sm font-medium outline-none hover:underline focus-visible:underline"
+          >
+            <span className="absolute inset-0" aria-hidden="true" />
+            {item.title}
+          </Link>
+          <p className="text-sm text-muted-foreground">{item.description}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (density === "art") {
     return (
