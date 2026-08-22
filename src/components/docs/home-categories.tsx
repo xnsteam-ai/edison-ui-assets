@@ -250,7 +250,7 @@ function CategoryGroup({
           className={cn(
             "grid",
             category.density === "compact" &&
-              "grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10",
+              "grid-cols-4 gap-0 border-t border-l sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12",
             category.density === "mark" &&
               "grid-cols-4 gap-x-6 gap-y-8 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10",
             category.density === "art" && "grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4",
@@ -354,12 +354,13 @@ function ResourceTile({ item, density }: { item: HomeCategoryItem; density: Cate
     );
   }
 
+  // Seamless hairline grid: cells share borders, no per-tile card.
   if (density === "compact") {
     return (
-      <div className="group relative aspect-square overflow-hidden rounded-lg border bg-muted/30 transition-colors hover:border-foreground/20">
+      <div className="group relative aspect-square border-r border-b transition-colors hover:bg-muted/60">
         <div className="absolute inset-0 grid place-items-center overflow-hidden p-3">
           {Preview ? (
-            <div className="pointer-events-none select-none">
+            <div className="pointer-events-none text-foreground/80 transition-colors select-none group-hover:text-foreground">
               <Preview />
             </div>
           ) : (
@@ -371,12 +372,16 @@ function ResourceTile({ item, density }: { item: HomeCategoryItem; density: Cate
 
         <Link
           {...itemHref}
-          className="absolute inset-0 z-10 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="absolute inset-0 z-10 outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-inset"
         >
           <span className="sr-only">{`Open ${item.title}`}</span>
         </Link>
 
-        <div className="absolute inset-0 z-20 flex items-end justify-end p-1.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+        <span className="pointer-events-none absolute top-1 left-1.5 z-20 max-w-[calc(100%-0.75rem)] truncate text-[10px] text-muted-foreground opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+          {item.title}
+        </span>
+
+        <div className="absolute right-0.5 bottom-0.5 z-20 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
           <CopyButton
             value={() => getDomainInstallCommand(item.domain, item.name, "npm")}
             copyLabel={`Copy install command for ${item.title}`}
@@ -384,7 +389,7 @@ function ResourceTile({ item, density }: { item: HomeCategoryItem; density: Cate
             resetDelay={2000}
             variant="ghost"
             size="icon-sm"
-            className="rounded-full bg-background/80 backdrop-blur-sm hover:bg-background"
+            className="size-6 rounded-md hover:bg-background"
           />
         </div>
       </div>

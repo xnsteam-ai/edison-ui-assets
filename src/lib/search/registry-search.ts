@@ -12,7 +12,9 @@ import {
 } from "../registry/sections";
 
 const DEFAULT_SEARCH_LIMIT = 20;
-const MAX_SEARCH_LIMIT = 50;
+/** Upper bound on a single search response. Raised past the registry's item count so an
+ *  unfiltered query is not silently truncated as the catalog grows. */
+export const MAX_SEARCH_LIMIT = 200;
 
 const registrySearchSchema = {
   id: "string",

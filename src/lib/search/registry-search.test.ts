@@ -10,6 +10,7 @@ import {
   searchRegistryItems,
   searchRegistryRecords,
   type RegistrySearchRecordsInput,
+  MAX_SEARCH_LIMIT,
 } from "./registry-search";
 
 const fixtureSearchInput = {
@@ -154,10 +155,11 @@ describe("registry search", () => {
   test("searches live records without requiring starter content", async () => {
     const records = getRegistrySearchRecords();
     const response = await searchRegistryItems({ query: "", limit: records.length + 1 });
+    const expected = records.slice(0, MAX_SEARCH_LIMIT);
 
     expect(response.count).toBe(records.length);
     expect(response.results.map((result) => result.name)).toEqual(
-      records.map((record) => record.name),
+      expected.map((record) => record.name),
     );
   });
 });
