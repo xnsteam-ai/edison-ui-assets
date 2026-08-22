@@ -142,8 +142,7 @@ const categories = [
   {
     id: "backgrounds",
     label: "Background",
-    purpose:
-      "Pure-CSS shaders, background patterns, and gradients — every value an editable custom property.",
+    purpose: "Pure-CSS background patterns and shaders — every value an editable custom property.",
     emptyHint: "Backgrounds will appear here as they're published.",
     density: "specimen",
     groupByCategory: true,
