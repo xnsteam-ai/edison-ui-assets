@@ -88,8 +88,14 @@ export type RegistryControlDefinition = {
   unit?: string;
   /** `select` choices. */
   options?: RegistryControlOption[];
-  /** Maps this control onto a CSS custom property on the preview canvas. */
+  /** Maps this control onto a shadcn theme token, emitted as `cssVars.theme`. */
   cssVar?: string;
+  /**
+   * Maps this control onto a custom property declared by the item's own stylesheet. Distinct from
+   * `cssVar`: this one is element-scoped and is baked into the published CSS rather than written
+   * into the consumer's `:root`.
+   */
+  cssProp?: string;
   description?: string;
 };
 
@@ -130,7 +136,7 @@ export function isRegistryControlDefinition(value: unknown): value is RegistryCo
     }
   }
 
-  for (const field of ["unit", "cssVar", "description"] as const) {
+  for (const field of ["unit", "cssVar", "cssProp", "description"] as const) {
     if (control[field] !== undefined && typeof control[field] !== "string") {
       return false;
     }

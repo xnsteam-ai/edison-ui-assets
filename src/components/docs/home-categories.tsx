@@ -48,6 +48,8 @@ type HomeCategory = {
   purpose: string;
   emptyHint: string;
   density: CategoryDensity;
+  /** Splits the section into sub-headed grids by each item's `meta.category`. */
+  groupByCategory?: boolean;
 };
 
 type HomeCategoriesProps = {
@@ -136,6 +138,15 @@ const categories = [
     purpose: "Photography, textures, and curated visual assets.",
     emptyHint: "Images will appear here as they're published.",
     density: "gallery",
+  },
+  {
+    id: "backgrounds",
+    label: "Background",
+    purpose:
+      "Pure-CSS shaders, background patterns, and gradients — every value an editable custom property.",
+    emptyHint: "Backgrounds will appear here as they're published.",
+    density: "specimen",
+    groupByCategory: true,
   },
   {
     id: "videos",
@@ -304,42 +315,25 @@ function CategoryGroup({
         <p className="text-sm text-muted-foreground">{category.purpose}</p>
       </div>
 
-      {items.length > 0 ? (
-        <ul
-          className={cn(
-            // Every grid is sized by a minimum tile width rather than a fixed column count, so the
-            // number of tiles per row follows the available width — five or more on a wide screen —
-            // and no tile is ever squeezed below the width its content needs.
-            "grid",
-            category.density === "compact" &&
-              "grid-cols-[repeat(auto-fill,minmax(min(100%,96px),1fr))] gap-0 border-t border-l",
-            category.density === "mark" &&
-              "grid-cols-[repeat(auto-fill,minmax(min(100%,120px),1fr))] gap-x-6 gap-y-8",
-            category.density === "art" &&
-              // Two-up on a phone, then range-based — illustrations read fine at half a small
-              // screen but need real width once there is room for it.
-              "grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]",
-            category.density === "gallery" &&
-              "block columns-[340px] gap-4 [&>li]:mb-4 [&>li]:break-inside-avoid",
-            category.density === "card" &&
-              "grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-x-3 gap-y-10",
-            category.density === "preview" &&
-              "grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3",
-            // Type specimens need more room than a component tile before they read as type.
-            category.density === "specimen" &&
-              "grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-3",
-          )}
-        >
-          {items.map((item, itemIndex) => (
-            <li key={`${item.domain}/${item.name}`}>
-              <ResourceTile
-                item={item}
-                density={category.density}
-                onOpen={() => onOpen(items, itemIndex)}
-              />
-            </li>
-          ))}
-        </ul>
+      {items.length > 0 && category.groupByCategory ? (
+        getItemCategoryGroups(items).map((group) => (
+          <div key={group.label} className="flex flex-col gap-3">
+            <h4 className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+              {group.label}
+            </h4>
+            <ItemGrid
+              density={category.density}
+              items={group.items}
+              onOpen={(itemIndex) => onOpen(group.items, itemIndex)}
+            />
+          </div>
+        ))
+      ) : items.length > 0 ? (
+        <ItemGrid
+          density={category.density}
+          items={items}
+          onOpen={(itemIndex) => onOpen(items, itemIndex)}
+        />
       ) : (
         // Sized like one tile of this category's grid, so an empty category reads at the same
         // scale as a populated one instead of stretching to the full row.
@@ -350,6 +344,71 @@ function CategoryGroup({
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Splits a domain's items by their `meta.category`, preserving first-seen order so the grouping
+ * follows the order items are authored in rather than an alphabetical shuffle.
+ */
+function getItemCategoryGroups(
+  items: readonly HomeCategoryItem[],
+): { label: string; items: HomeCategoryItem[] }[] {
+  const groups = new Map<string, HomeCategoryItem[]>();
+
+  for (const item of items) {
+    const label = item.category?.trim() || "Uncategorised";
+    const group = groups.get(label);
+
+    if (group) {
+      group.push(item);
+    } else {
+      groups.set(label, [item]);
+    }
+  }
+
+  return [...groups].map(([label, groupItems]) => ({ label, items: groupItems }));
+}
+
+function ItemGrid({
+  density,
+  items,
+  onOpen,
+}: {
+  density: CategoryDensity;
+  items: readonly HomeCategoryItem[];
+  onOpen: (index: number) => void;
+}) {
+  return (
+    <ul
+      className={cn(
+        // Every grid is sized by a minimum tile width rather than a fixed column count, so the
+        // number of tiles per row follows the available width — five or more on a wide screen —
+        // and no tile is ever squeezed below the width its content needs.
+        "grid",
+        density === "compact" &&
+          "grid-cols-[repeat(auto-fill,minmax(min(100%,96px),1fr))] gap-0 border-t border-l",
+        density === "mark" &&
+          "grid-cols-[repeat(auto-fill,minmax(min(100%,120px),1fr))] gap-x-6 gap-y-8",
+        density === "art" &&
+          // Two-up on a phone, then range-based — illustrations read fine at half a small
+          // screen but need real width once there is room for it.
+          "grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]",
+        density === "gallery" &&
+          "block columns-[340px] gap-4 [&>li]:mb-4 [&>li]:break-inside-avoid",
+        density === "card" &&
+          "grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-x-3 gap-y-10",
+        density === "preview" && "grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3",
+        // Type specimens and background surfaces need more room than a component tile.
+        density === "specimen" && "grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-3",
+      )}
+    >
+      {items.map((item, itemIndex) => (
+        <li key={`${item.domain}/${item.name}`}>
+          <ResourceTile item={item} density={density} onOpen={() => onOpen(itemIndex)} />
+        </li>
+      ))}
+    </ul>
   );
 }
 

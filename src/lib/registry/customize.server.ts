@@ -7,10 +7,18 @@
  *    regex surgery spread across the file.
  *  - **Design tokens** (any control that declares a `cssVar`) are emitted as real shadcn
  *    `cssVars`, which the CLI already knows how to install.
+ *
+ * CSS-only items (the Backgrounds registry) have no `defaults` literal. They instead declare every
+ * value as a custom property inside a `stark:defaults` block, which `applyCssDefaults` rewrites the
+ * same way — one anchor, one deterministic replacement.
  */
 
 import { getRegistryItem } from "./catalog";
-import type { RegistryControlDefinition, RegistryControlValues } from "./controls";
+import type {
+  RegistryControlDefinition,
+  RegistryControlValue,
+  RegistryControlValues,
+} from "./controls";
 import { decodeItemConfig } from "./item-config";
 import type { RegistryDomain } from "./item-types";
 import { getDomainRegistryItemJson } from "./json.server";
@@ -48,7 +56,9 @@ export function getCustomizedRegistryItemJsonResponse(
       ? {
           files: base.files.map((file) => ({
             ...file,
-            content: applyDefaults(file.content, values),
+            content: file.path.endsWith(".css")
+              ? applyCssDefaults(file.content, controls, values)
+              : applyDefaults(file.content, values),
           })),
         }
       : {}),
@@ -94,6 +104,79 @@ export function applyDefaults(content: string, values: RegistryControlValues): s
   return content.slice(0, bodyStart) + updated + content.slice(bodyEnd);
 }
 
+/**
+ * Rewrites the custom-property declarations inside a stylesheet's `stark:defaults` block.
+ *
+ * Only properties named by a control's `cssProp` are written, and only inside the marked block, so
+ * a config can neither invent new declarations nor reach the effect rules below the block. Returns
+ * the content untouched when the markers are absent.
+ */
+export function applyCssDefaults(
+  content: string,
+  controls: readonly RegistryControlDefinition[],
+  values: RegistryControlValues,
+): string {
+  const openMarker = "/* stark:defaults */";
+  const closeMarker = "/* stark:end */";
+  const start = content.indexOf(openMarker);
+  const end = content.indexOf(closeMarker, start + openMarker.length);
+
+  if (start === -1 || end === -1) {
+    return content;
+  }
+
+  const controlsByProp = new Map(
+    controls.flatMap((control) =>
+      control.cssProp ? ([[normalizeCssProp(control.cssProp), control]] as const) : [],
+    ),
+  );
+
+  const bodyStart = start + openMarker.length;
+  const body = content.slice(bodyStart, end);
+  const updated = body.replaceAll(
+    /^(\s*)(--[\w-]+)(\s*:\s*)([^;]*)(;)/gmu,
+    (line, indent: string, property: string, separator: string, _current: string, semi: string) => {
+      const control = controlsByProp.get(normalizeCssProp(property));
+
+      if (!control || !Object.hasOwn(values, control.id)) {
+        return line;
+      }
+
+      const formatted = formatControlValue(control, values[control.id]);
+
+      return formatted === null ? line : `${indent}${property}${separator}${formatted}${semi}`;
+    },
+  );
+
+  return content.slice(0, bodyStart) + updated + content.slice(end);
+}
+
+function normalizeCssProp(property: string): string {
+  return property.trim().replace(/^--/u, "");
+}
+
+/** Shared by the CSS baker and the theme-token emitter so both format a value identically. */
+function formatControlValue(
+  control: RegistryControlDefinition,
+  value: RegistryControlValue | undefined,
+): string | null {
+  if (typeof value === "string") {
+    return value === "" ? null : value;
+  }
+
+  if (typeof value === "number") {
+    return `${value}${control.unit ?? "px"}`;
+  }
+
+  if (typeof value === "boolean") {
+    // A boolean drives a CSS toggle: 1/0 multiplies cleanly inside calc() and works with
+    // `opacity` or `--enabled` style switches.
+    return value ? "1" : "0";
+  }
+
+  return null;
+}
+
 function buildCssVars(
   controls: readonly RegistryControlDefinition[],
   values: RegistryControlValues,
@@ -105,12 +188,10 @@ function buildCssVars(
       continue;
     }
 
-    const value = values[control.id];
+    const formatted = formatControlValue(control, values[control.id]);
 
-    if (typeof value === "string" && value) {
-      vars[control.cssVar.replace(/^--/u, "")] = value;
-    } else if (typeof value === "number") {
-      vars[control.cssVar.replace(/^--/u, "")] = `${value}${control.unit ?? "px"}`;
+    if (formatted !== null) {
+      vars[normalizeCssProp(control.cssVar)] = formatted;
     }
   }
 

@@ -138,6 +138,9 @@ export function ItemPreviewDialog({
   const isIcon = item.domain === "icons";
   const isFont = item.domain === "fonts" && Boolean(item.fontFamily);
   const isTemplate = item.domain === "templates";
+  // Backgrounds are full-surface items like templates: they have no intrinsic width, so the canvas
+  // has to give them one or `w-full` collapses to zero inside the shrink-to-fit wrapper.
+  const isSurface = item.domain === "backgrounds";
   const isImage = Boolean(assetUrl);
   const itemPath = `/${getRegistrySectionIdForType(item.type as never)}/${item.name}`;
   const namespaced = `${siteConfig.subRegistries[item.domain].namespace}/${item.name}`;
@@ -473,13 +476,16 @@ export function ItemPreviewDialog({
               <div
                 className="flex items-center justify-center transition-[width]"
                 style={{
-                  width: isTemplate ? viewportWidths[viewport] : undefined,
+                  width: isTemplate || isSurface ? viewportWidths[viewport] : undefined,
                   maxWidth: "100%",
                 }}
               >
                 <div
                   className={cn(
                     "origin-center text-foreground",
+                    // A surface has no intrinsic width, so this scale wrapper has to stretch or
+                    // the preview's `w-full` resolves against a shrink-to-fit box and collapses.
+                    isSurface && "w-full",
                     isIcon && "[&_svg]:h-[var(--icon-size)] [&_svg]:w-[var(--icon-size)]",
                     isIcon && "[&_svg]:[stroke-width:var(--icon-stroke)]",
                   )}
@@ -584,7 +590,7 @@ export function ItemPreviewDialog({
                     />
                   </Field>
 
-                  {isTemplate ? (
+                  {isTemplate || isSurface ? (
                     <Field label="Viewport">
                       <Segmented
                         value={viewport}
