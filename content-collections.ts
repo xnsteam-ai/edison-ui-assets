@@ -95,6 +95,9 @@ const registryNavigationItems = defineCollection({
       // this collection's type has to stay serializable.
       category: readMetaString(item.meta, "category"),
       prompt: readMetaString(item.meta, "prompt"),
+      // Machine-readable twin of the prose prompt, so a generator that accepts a JSON spec gets the
+      // same image without the user having to restructure anything.
+      promptSpec: readMetaString(item.meta, "promptSpec"),
       promptKind: readMetaString(item.meta, "promptKind"),
       // Intrinsic size lets the masonry reserve the right box before a lazy image loads.
       assetWidth: readMetaNumber(item.meta, "width"),

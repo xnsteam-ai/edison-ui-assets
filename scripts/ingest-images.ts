@@ -35,8 +35,8 @@ Options:
   --dry-run              Print what would be written without touching disk.
   -h, --help             Show this help.
 
-Every item is written with an empty description and a "suggested" prompt placeholder for you to
-fill in — the source files carry no prompt metadata, so nothing is invented here.
+Every item is written with an empty description and a structured "suggested" prompt scaffold (prose
++ JSON spec) for you to fill in — the source files carry no prompt metadata, so nothing is invented.
 `,
   );
   process.exit(args.help ? 0 : 1);
@@ -47,6 +47,37 @@ const category = args.category ?? "Uncategorised";
 const prefix = args.prefix ?? "image";
 const limit = args.limit ? Number(args.limit) : Number.POSITIVE_INFINITY;
 const registryRoot = join(process.cwd(), "registry", "items", "images", "files");
+
+/**
+ * Every image ships two prompts describing the same picture: a long prose paragraph and its
+ * machine-readable JSON twin. The scaffold below is written empty — nothing about the source file
+ * is invented here — but it fixes the section order so every item in the registry is structured
+ * identically and a user can move a prompt between generators without losing anything.
+ */
+const promptScaffold = `  prompt: |
+    <medium and format> of <subject or "pure abstract field, no subject">.
+    <composition: framing, crop, axis, focal point, what must NOT appear>.
+    <subject detail: rendered at the level of individual features and textures>.
+    <colour: named tones with hex values, interpolation, contrast, temperature>.
+    <lighting: key, fill, rim, direction, quality, shadow behaviour>.
+    <surface and grain: finish, film grain type and opacity, distribution>.
+    <camera: body, lens, angle, height, focus plane, depth of field>.
+    <grading and post: colour grade, retouching level, artefacts to avoid>.
+    <output: resolution, aspect ratio, quality floor>.
+  promptSpec: |
+    {
+      "output": { "aspect_ratio": "", "orientation": "", "resolution": "", "intended_use": "" },
+      "subject": { "present": true, "instruction": "" },
+      "composition": { "framing": "", "focal_point": "" },
+      "color": { "palette": [], "interpolation": "", "contrast": "" },
+      "lighting": { "key": "", "fill": "", "rim": "", "shadows": "" },
+      "texture": { "grain_type": "", "grain_opacity": "", "digital_noise": "none" },
+      "camera": { "lens_equivalent": "", "angle": "", "focus": "", "depth_of_field": "" },
+      "image_style": { "genre": "", "mood": "", "realism": "", "retouching": "" },
+      "quality": { "sharpness": "", "compression_artifacts": "none" },
+      "negative_prompt": ["text", "watermark", "logo", "low resolution", "jpeg artifacts"]
+    }
+`;
 
 const names: string[] = [];
 
@@ -88,15 +119,16 @@ title: ${title}
 description: ""
 meta:
   category: ${JSON.stringify(category)}
-  prompt: ""
   promptKind: suggested
   asset: ${JSON.stringify(fileName)}
   width: ${dimensions?.width ?? 0}
   height: ${dimensions?.height ?? 0}
   source: ${JSON.stringify(basename(sourcePath))}
----
+${promptScaffold}---
 
-Fill in the description and suggested prompt above. \`promptKind: suggested\` marks the prompt as a
+Fill in the description, the prose prompt and the structured spec above. Both must describe the
+*same* image — the spec is the machine-readable twin of the prose, so a user can paste either into a
+different generator and land on the same result. \`promptKind: suggested\` marks the prompt as a
 reconstruction rather than the original generation prompt.
 `;
 

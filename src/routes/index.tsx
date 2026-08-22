@@ -29,6 +29,7 @@ function HomePage() {
     controls: item.controls,
     category: item.category,
     prompt: item.prompt,
+    promptSpec: item.promptSpec,
     promptKind: item.promptKind,
     assetWidth: item.assetWidth,
     assetHeight: item.assetHeight,

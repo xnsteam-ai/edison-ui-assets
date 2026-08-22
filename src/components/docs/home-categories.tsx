@@ -24,6 +24,7 @@ export type HomeCategoryItem = {
   controls?: RegistryControlDefinition[];
   category?: string;
   prompt?: string;
+  promptSpec?: string;
   promptKind?: string;
   assetWidth?: number;
   assetHeight?: number;

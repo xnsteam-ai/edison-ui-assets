@@ -47,6 +47,7 @@ export type PreviewDialogItem = {
   controls?: RegistryControlDefinition[];
   category?: string;
   prompt?: string;
+  promptSpec?: string;
   promptKind?: string;
 };
 
@@ -240,8 +241,20 @@ export function ItemPreviewDialog({
       "",
       `## ${kind}`,
       "",
-      item.prompt ? ["```text", item.prompt, "```"].join("\n") : "_No prompt recorded._",
+      item.prompt ? ["```text", item.prompt.trim(), "```"].join("\n") : "_No prompt recorded._",
       "",
+      item.promptSpec
+        ? [
+            "## Structured spec",
+            "",
+            "Paste this into any generator that accepts a JSON prompt to reproduce the same image.",
+            "",
+            "```json",
+            item.promptSpec.trim(),
+            "```",
+            "",
+          ].join("\n")
+        : "",
       item.promptKind === "suggested"
         ? "> This prompt is a reconstruction that would produce a similar image, not the original generation prompt."
         : "",
@@ -603,8 +616,8 @@ export function ItemPreviewDialog({
                     </Field>
                     <Field label={item.promptKind === "suggested" ? "Suggested prompt" : "Prompt"}>
                       <div className="flex flex-col gap-1.5">
-                        <pre className="max-h-32 overflow-auto rounded-lg bg-muted p-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap text-muted-foreground">
-                          {item.prompt || "No prompt recorded."}
+                        <pre className="max-h-56 overflow-auto rounded-lg bg-muted p-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap text-muted-foreground">
+                          {item.prompt?.trim() || "No prompt recorded."}
                         </pre>
                         {item.promptKind === "suggested" ? (
                           <p className="text-[10px] text-muted-foreground">
@@ -613,7 +626,7 @@ export function ItemPreviewDialog({
                         ) : null}
                         {item.prompt ? (
                           <CopyButton
-                            value={item.prompt}
+                            value={item.prompt.trim()}
                             copyLabel="Copy prompt"
                             copiedLabel="Copied"
                             resetDelay={2000}
@@ -625,6 +638,28 @@ export function ItemPreviewDialog({
                         ) : null}
                       </div>
                     </Field>
+                    {item.promptSpec ? (
+                      <Field label="Structured spec">
+                        <div className="flex flex-col gap-1.5">
+                          <pre className="max-h-56 overflow-auto rounded-lg bg-muted p-2 font-mono text-[10px] leading-relaxed whitespace-pre text-muted-foreground">
+                            {item.promptSpec.trim()}
+                          </pre>
+                          <p className="text-[10px] text-muted-foreground">
+                            The same prompt as JSON, for generators that accept a structured spec.
+                          </p>
+                          <CopyButton
+                            value={item.promptSpec.trim()}
+                            copyLabel="Copy spec"
+                            copiedLabel="Copied"
+                            resetDelay={2000}
+                            variant="outline"
+                            size="sm"
+                            showLabel
+                            className="w-fit"
+                          />
+                        </div>
+                      </Field>
+                    ) : null}
                   </section>
                 ) : null}
 
