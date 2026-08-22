@@ -179,7 +179,7 @@ export function HomeCategories({ items }: HomeCategoriesProps) {
 
   return (
     <section aria-labelledby="all-categories-heading" className="mt-20 w-full sm:mt-24">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-8">
         <div className="flex flex-col gap-4 text-left sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-1.5">
             <h2 id="all-categories-heading" className="text-xl font-semibold tracking-tight">
@@ -307,18 +307,27 @@ function CategoryGroup({
       {items.length > 0 ? (
         <ul
           className={cn(
+            // Every grid is sized by a minimum tile width rather than a fixed column count, so the
+            // number of tiles per row follows the available width — five or more on a wide screen —
+            // and no tile is ever squeezed below the width its content needs.
             "grid",
             category.density === "compact" &&
-              "grid-cols-4 gap-0 border-t border-l sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12",
+              "grid-cols-[repeat(auto-fill,minmax(min(100%,96px),1fr))] gap-0 border-t border-l",
             category.density === "mark" &&
-              "grid-cols-4 gap-x-6 gap-y-8 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10",
-            category.density === "art" && "grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4",
+              "grid-cols-[repeat(auto-fill,minmax(min(100%,120px),1fr))] gap-x-6 gap-y-8",
+            category.density === "art" &&
+              // Two-up on a phone, then range-based — illustrations read fine at half a small
+              // screen but need real width once there is room for it.
+              "grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]",
             category.density === "gallery" &&
-              "block columns-1 gap-4 sm:columns-2 lg:columns-3 [&>li]:mb-4 [&>li]:break-inside-avoid",
+              "block columns-[340px] gap-4 [&>li]:mb-4 [&>li]:break-inside-avoid",
             category.density === "card" &&
-              "grid-cols-1 gap-x-3 gap-y-10 sm:grid-cols-2 lg:grid-cols-3",
-            (category.density === "preview" || category.density === "specimen") &&
-              "grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3",
+              "grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-x-3 gap-y-10",
+            category.density === "preview" &&
+              "grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3",
+            // Type specimens need more room than a component tile before they read as type.
+            category.density === "specimen" &&
+              "grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-3",
           )}
         >
           {items.map((item, itemIndex) => (
@@ -334,7 +343,7 @@ function CategoryGroup({
       ) : (
         // Sized like one tile of this category's grid, so an empty category reads at the same
         // scale as a populated one instead of stretching to the full row.
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3">
           <p className="grid aspect-[4/3] place-items-center rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
             {category.emptyHint}
           </p>
