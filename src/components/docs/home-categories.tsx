@@ -286,9 +286,15 @@ function ResourceTile({ item, density }: { item: HomeCategoryItem; density: Cate
 
   if (density === "card") {
     return (
-      <div className="group relative flex flex-col gap-3">
-        {/* Only the thumbnail gets a panel; the caption sits on the page. */}
-        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted/50 transition-colors group-hover:bg-muted">
+      <div className="group relative isolate flex flex-col gap-3">
+        {/*
+         * Hover panel wrapping thumbnail and caption together. It is inset-negative and
+         * behind the content (-z-10 inside `isolate`), so it tints the card without
+         * adding padding that would shift the grid.
+         */}
+        <div className="pointer-events-none absolute -inset-3 -z-10 rounded-2xl bg-muted opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100" />
+
+        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-foreground/8">
           {Preview ? (
             <div className="pointer-events-none absolute inset-0 select-none [&>*]:h-full [&>*]:w-full">
               <Preview />
