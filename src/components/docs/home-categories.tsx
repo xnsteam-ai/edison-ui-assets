@@ -24,8 +24,9 @@ export type HomeCategoryItem = {
  * `compact`  — dense grid of small square tiles, for icon-scale artwork.
  * `specimen` — full-bleed tile where the preview supplies its own background,
  *              used for type specimens and media where the setting is the point.
+ * `mark`     — container-less squircle: the artwork is the tile, no card chrome.
  */
-type CategoryDensity = "preview" | "compact" | "specimen";
+type CategoryDensity = "preview" | "compact" | "specimen" | "mark";
 
 type HomeCategory = {
   id: RegistryDomain;
@@ -82,7 +83,7 @@ const categories = [
     label: "Logo",
     purpose: "Stark logos, wordmarks, and brand symbols.",
     emptyHint: "Logos and wordmarks will appear here as they're published.",
-    density: "compact",
+    density: "mark",
   },
   {
     id: "illustrations",
@@ -246,10 +247,13 @@ function CategoryGroup({
       {items.length > 0 ? (
         <ul
           className={cn(
-            "grid gap-3",
-            category.density === "compact"
-              ? "grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10"
-              : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+            "grid",
+            category.density === "compact" &&
+              "grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10",
+            category.density === "mark" &&
+              "grid-cols-4 gap-x-6 gap-y-8 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10",
+            (category.density === "preview" || category.density === "specimen") &&
+              "grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3",
           )}
         >
           {items.map((item) => (
@@ -273,6 +277,44 @@ function ResourceTile({ item, density }: { item: HomeCategoryItem; density: Cate
     to: "/$section/$name" as const,
     params: { section: getRegistrySectionIdForType(item.type), name: item.name },
   };
+
+  if (density === "mark") {
+    return (
+      <div className="group relative">
+        {/* No card chrome: the mark itself is the tile. */}
+        <div className="aspect-square overflow-hidden rounded-[22%] shadow-sm ring-1 ring-black/5 transition-transform group-hover:-translate-y-0.5 dark:ring-white/10">
+          {Preview ? (
+            <div className="pointer-events-none size-full select-none [&>*]:size-full">
+              <Preview />
+            </div>
+          ) : (
+            <div className="grid size-full place-items-center bg-muted text-[10px] text-muted-foreground">
+              {item.title}
+            </div>
+          )}
+        </div>
+
+        <Link
+          {...itemHref}
+          className="absolute inset-0 rounded-[22%] outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <span className="sr-only">{`Open ${item.title}`}</span>
+        </Link>
+
+        <div className="absolute -top-1.5 -right-1.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+          <CopyButton
+            value={() => getDomainInstallCommand(item.domain, item.name, "npm")}
+            copyLabel={`Copy install command for ${item.title}`}
+            copiedLabel="Copied"
+            resetDelay={2000}
+            variant="ghost"
+            size="icon-sm"
+            className="rounded-full bg-background shadow-sm ring-1 ring-black/5 hover:bg-background dark:ring-white/10"
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (density === "compact") {
     return (
