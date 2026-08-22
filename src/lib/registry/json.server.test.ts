@@ -18,19 +18,20 @@ const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
       title: "Alpha Card",
       description: "A compact card component.",
       type: "registry:ui",
-      registryMdxFilePath: "registry/items/components/alpha-card/_registry.mdx",
+      registryMdxFilePath: "registry/items/components/components/alpha-card/_registry.mdx",
+      registryDomain: "components",
       files: [{ path: "ui/alpha-card.tsx", target: "@ui/alpha-card.tsx", type: "registry:ui" }],
       sourceFiles: [
         {
           path: "ui/alpha-card.tsx",
-          sourcePath: "registry/items/components/alpha-card/alpha-card.tsx",
+          sourcePath: "registry/items/components/components/alpha-card/alpha-card.tsx",
           fileName: "alpha-card.tsx",
           target: "@ui/alpha-card.tsx",
           type: "registry:ui",
         },
       ],
       previewSourceFile: {
-        path: "registry/items/components/alpha-card/_preview.tsx",
+        path: "registry/items/components/components/alpha-card/_preview.tsx",
         fileName: "_preview.tsx",
         source: "",
       },
@@ -43,7 +44,8 @@ const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
       title: "Metrics Panel",
       description: "A dashboard metrics block.",
       type: "registry:block",
-      registryMdxFilePath: "registry/items/blocks/metrics-panel/_registry.mdx",
+      registryMdxFilePath: "registry/items/components/blocks/metrics-panel/_registry.mdx",
+      registryDomain: "components",
       files: [
         {
           path: "components/metrics-panel.tsx",
@@ -55,21 +57,21 @@ const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
       sourceFiles: [
         {
           path: "components/metrics-panel.tsx",
-          sourcePath: "registry/items/blocks/metrics-panel/metrics-panel.tsx",
+          sourcePath: "registry/items/components/blocks/metrics-panel/metrics-panel.tsx",
           fileName: "metrics-panel.tsx",
           target: "@components/metrics-panel.tsx",
           type: "registry:component",
         },
         {
           path: "lib/metrics-data.ts",
-          sourcePath: "registry/items/blocks/metrics-panel/metrics-data.ts",
+          sourcePath: "registry/items/components/blocks/metrics-panel/metrics-data.ts",
           fileName: "metrics-data.ts",
           target: "@lib/metrics-data.ts",
           type: "registry:lib",
         },
       ],
       previewSourceFile: {
-        path: "registry/items/blocks/metrics-panel/_preview.tsx",
+        path: "registry/items/components/blocks/metrics-panel/_preview.tsx",
         fileName: "_preview.tsx",
         source: "",
       },
@@ -82,7 +84,8 @@ const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
       title: "useAlphaState",
       description: "A small state hook.",
       type: "registry:hook",
-      registryMdxFilePath: "registry/items/hooks/use-alpha-state/_registry.mdx",
+      registryMdxFilePath: "registry/items/components/hooks/use-alpha-state/_registry.mdx",
+      registryDomain: "components",
       files: [
         {
           path: "hooks/use-alpha-state.ts",
@@ -93,14 +96,14 @@ const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
       sourceFiles: [
         {
           path: "hooks/use-alpha-state.ts",
-          sourcePath: "registry/items/hooks/use-alpha-state/use-alpha-state.ts",
+          sourcePath: "registry/items/components/hooks/use-alpha-state/use-alpha-state.ts",
           fileName: "use-alpha-state.ts",
           target: "@hooks/use-alpha-state.ts",
           type: "registry:hook",
         },
       ],
       previewSourceFile: {
-        path: "registry/items/hooks/use-alpha-state/_preview.tsx",
+        path: "registry/items/components/hooks/use-alpha-state/_preview.tsx",
         fileName: "_preview.tsx",
         source: "",
       },
@@ -110,12 +113,13 @@ const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
     },
   ];
   const mockedRegistrySourceByPath: Record<string, string> = {
-    "registry/items/components/alpha-card/alpha-card.tsx":
+    "registry/items/components/components/alpha-card/alpha-card.tsx":
       "export function AlphaCard() {\n  return <div>Alpha</div>;\n}",
-    "registry/items/blocks/metrics-panel/metrics-panel.tsx":
+    "registry/items/components/blocks/metrics-panel/metrics-panel.tsx":
       'import { metrics } from "./metrics-data";\n\nexport function MetricsPanel() {\n  return <div>{metrics.total}</div>;\n}',
-    "registry/items/blocks/metrics-panel/metrics-data.ts": "export const metrics = { total: 42 };",
-    "registry/items/hooks/use-alpha-state/use-alpha-state.ts":
+    "registry/items/components/blocks/metrics-panel/metrics-data.ts":
+      "export const metrics = { total: 42 };",
+    "registry/items/components/hooks/use-alpha-state/use-alpha-state.ts":
       'import { useState } from "react";\n\nexport function useAlphaState() {\n  return useState("alpha");\n}',
   };
 

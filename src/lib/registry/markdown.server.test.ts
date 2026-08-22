@@ -33,7 +33,7 @@ const fixtureItem = {
   description: "A compact card component.",
   hasPreview: true,
   previewSourceFile: {
-    path: "registry/items/components/alpha-card/_preview.tsx",
+    path: "registry/items/components/components/alpha-card/_preview.tsx",
     fileName: "_preview.tsx",
     source: `import { AlphaCard } from "./alpha-card";
 
@@ -44,7 +44,7 @@ export function Preview() {
   sourceFiles: [
     {
       path: "ui/alpha-card.tsx",
-      sourcePath: "registry/items/components/alpha-card/alpha-card.tsx",
+      sourcePath: "registry/items/components/components/alpha-card/alpha-card.tsx",
       fileName: "alpha-card.tsx",
       type: "registry:ui" as const,
       source: `export function AlphaCard() {
@@ -93,7 +93,7 @@ describe("registry markdown", () => {
       description: "A metadata-only theme.",
       hasPreview: false,
       previewSourceFile: {
-        path: "registry/items/themes/custom-theme/_preview.tsx",
+        path: "registry/items/components/themes/custom-theme/_preview.tsx",
         fileName: "_preview.tsx",
         source: "",
       },
@@ -132,14 +132,14 @@ describe("registry markdown", () => {
           description: "A dashboard metrics block.",
           hasPreview: false,
           previewSourceFile: {
-            path: "registry/items/blocks/metrics-panel/_preview.tsx",
+            path: "registry/items/components/blocks/metrics-panel/_preview.tsx",
             fileName: "_preview.tsx",
             source: "",
           },
           sourceFiles: [
             {
               path: "components/metrics-panel.tsx",
-              sourcePath: "registry/items/blocks/metrics-panel/metrics-panel.tsx",
+              sourcePath: "registry/items/components/blocks/metrics-panel/metrics-panel.tsx",
               fileName: "metrics-panel.tsx",
               type: "registry:component" as const,
               source: `export function MetricsPanel() {
@@ -160,14 +160,14 @@ import { MetricsPanel } from "@/components/metrics-panel";
           description: "A small state hook.",
           hasPreview: false,
           previewSourceFile: {
-            path: "registry/items/hooks/use-alpha-state/_preview.tsx",
+            path: "registry/items/components/hooks/use-alpha-state/_preview.tsx",
             fileName: "_preview.tsx",
             source: "",
           },
           sourceFiles: [
             {
               path: "hooks/use-alpha-state.ts",
-              sourcePath: "registry/items/hooks/use-alpha-state/use-alpha-state.ts",
+              sourcePath: "registry/items/components/hooks/use-alpha-state/use-alpha-state.ts",
               fileName: "use-alpha-state.ts",
               type: "registry:hook" as const,
               source: `export function useAlphaState() {

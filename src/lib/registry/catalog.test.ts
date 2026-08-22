@@ -116,10 +116,10 @@ describe("registry catalog", () => {
   test("only enables previews when the preview file exports named Preview", () => {
     const [item] = createRegistryCatalogItems(
       {
-        "registry/items/components/fixture-card/_registry.mdx": getRegistryMdxFixture(),
+        "registry/items/components/components/fixture-card/_registry.mdx": getRegistryMdxFixture(),
       },
       {
-        "registry/items/components/fixture-card/_preview.tsx":
+        "registry/items/components/components/fixture-card/_preview.tsx":
           "export function FixturePreview() { return null; }",
       },
     );
@@ -202,7 +202,7 @@ describe("registry catalog", () => {
       sourceFiles: [
         {
           path: "ui/alpha-card.tsx",
-          sourcePath: "registry/items/components/alpha-card/alpha-card.tsx",
+          sourcePath: "registry/items/components/components/alpha-card/alpha-card.tsx",
           type: "registry:ui",
           source: "",
         },
@@ -211,7 +211,7 @@ describe("registry catalog", () => {
     const displaySource = getRegistryDisplaySource(
       item,
       {
-        path: "registry/items/components/alpha-card/_preview.tsx",
+        path: "registry/items/components/components/alpha-card/_preview.tsx",
         source: `import { AlphaCard } from "./alpha-card";`,
       },
       { registryItems: [] },
@@ -226,14 +226,14 @@ describe("registry catalog", () => {
       sourceFiles: [
         {
           path: "ui/alpha-card.tsx",
-          sourcePath: "registry/items/components/alpha-card/alpha-card.tsx",
+          sourcePath: "registry/items/components/components/alpha-card/alpha-card.tsx",
           type: "registry:ui",
           source: "",
         },
       ],
     } as const;
     const displaySource = getRegistryDisplaySource(item, {
-      path: "registry/items/components/alpha-card/_preview.tsx",
+      path: "registry/items/components/components/alpha-card/_preview.tsx",
       source: `"use client";
 
 import { AlphaCard } from "./alpha-card";
@@ -253,14 +253,14 @@ export function Preview() {
       sourceFiles: [
         {
           path: "ui/alpha-card.tsx",
-          sourcePath: "registry/items/components/alpha-card/alpha-card.tsx",
+          sourcePath: "registry/items/components/components/alpha-card/alpha-card.tsx",
           type: "registry:ui",
           source: "",
         },
       ],
     } as const;
     const displaySource = getRegistryDisplaySource(item, {
-      path: "registry/items/components/alpha-card/_preview.tsx",
+      path: "registry/items/components/components/alpha-card/_preview.tsx",
       source: `
 /* eslint-disable react/no-array-index-key */
 "use client";
@@ -295,13 +295,13 @@ export function Preview() {
       sourceFiles: [
         {
           path: "ui/example.tsx",
-          sourcePath: "registry/items/components/example/example.tsx",
+          sourcePath: "registry/items/components/components/example/example.tsx",
           type: "registry:ui",
           source: "",
         },
         {
           path: "hooks/use-example.ts",
-          sourcePath: "registry/items/components/example/use-example.ts",
+          sourcePath: "registry/items/components/components/example/use-example.ts",
           type: "registry:hook",
           source: "",
         },
@@ -310,7 +310,7 @@ export function Preview() {
     const displaySource = getRegistryDisplaySource(
       item,
       {
-        path: "registry/items/components/example/_preview.tsx",
+        path: "registry/items/components/components/example/_preview.tsx",
         source: [`import { useExample } from "./use-example";`, `import "./example.css";`].join(
           "\n",
         ),
@@ -327,7 +327,7 @@ export function Preview() {
       sourceFiles: [
         {
           path: "prompt-input.tsx",
-          sourcePath: "registry/items/components/prompt-input/prompt-input.tsx",
+          sourcePath: "registry/items/components/components/prompt-input/prompt-input.tsx",
           target: "@ui/ai/prompt-input.tsx",
           type: "registry:ui",
           source: "",
@@ -337,7 +337,7 @@ export function Preview() {
     const displaySource = getRegistryDisplaySource(
       item,
       {
-        path: "registry/items/components/prompt-input/_preview.tsx",
+        path: "registry/items/components/components/prompt-input/_preview.tsx",
         source: `import { PromptInput } from "./prompt-input";`,
       },
       { registryItems: [] },

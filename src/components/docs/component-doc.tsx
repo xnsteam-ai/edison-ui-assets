@@ -91,7 +91,7 @@ export function RegistryItemDoc({ item }: RegistryItemDocProps) {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="cli">
-            <InstallCommand item={{ name: item.name }} />
+            <InstallCommand item={{ name: item.name, domain: item.registryDomain }} />
           </TabsContent>
           <TabsContent value="manual">
             <ManualInstallation

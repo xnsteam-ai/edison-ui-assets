@@ -6,7 +6,7 @@ import { parseRegistryMdx, parseRegistryMdxDocument } from "./mdx";
 describe("registry MDX parser", () => {
   test("extracts frontmatter metadata and usage source", () => {
     const parsed = parseRegistryMdx(
-      "registry/items/components/toast/_registry.mdx",
+      "registry/items/components/components/toast/_registry.mdx",
       `---
 name: toast
 type: registry:ui
@@ -60,7 +60,7 @@ export function Example() {
 
   test("parses content collections frontmatter documents", () => {
     const parsed = parseRegistryMdxDocument(
-      "registry/items/components/toast/_registry.mdx",
+      "registry/items/components/components/toast/_registry.mdx",
       {
         name: "toast",
         type: "registry:ui",
@@ -78,13 +78,13 @@ export function Example() {
   test("rejects sourcePath frontmatter file entries", () => {
     expect(() =>
       parseRegistryMdx(
-        "registry/items/components/toast/_registry.mdx",
+        "registry/items/components/components/toast/_registry.mdx",
         `---
 name: toast
 type: registry:ui
 files:
   - path: toast.tsx
-    sourcePath: registry/items/components/toast/toast.tsx
+    sourcePath: registry/items/components/components/toast/toast.tsx
     type: registry:ui
 ---
 `,
@@ -94,7 +94,7 @@ files:
 
   test("preserves shadcn docs metadata separately from mdx body usage", () => {
     const parsed = parseRegistryMdx(
-      "registry/items/components/toast/_registry.mdx",
+      "registry/items/components/components/toast/_registry.mdx",
       `---
 name: toast
 type: registry:ui
@@ -113,7 +113,7 @@ This renders on the docs site.
 
   test("detects items without usage content", () => {
     const parsed = parseRegistryMdx(
-      "registry/items/components/toast/_registry.mdx",
+      "registry/items/components/components/toast/_registry.mdx",
       `---
 name: toast
 type: registry:ui
@@ -129,7 +129,7 @@ description: A toast manager.
 
   test("allows optional title, description, and files", () => {
     const parsed = parseRegistryMdx(
-      "registry/items/themes/brand-theme/_registry.mdx",
+      "registry/items/components/themes/brand-theme/_registry.mdx",
       `---
 name: brand-theme
 type: registry:theme
@@ -155,7 +155,7 @@ cssVars:
   test("rejects MDX imports or exports", () => {
     expect(() =>
       parseRegistryMdx(
-        "registry/items/components/toast/_registry.mdx",
+        "registry/items/components/components/toast/_registry.mdx",
         `---
 name: toast
 type: registry:ui
@@ -192,7 +192,7 @@ Use the toast component.
 
     for (const [type, extraFrontmatter] of fixtures) {
       const parsed = parseRegistryMdx(
-        `registry/items/items/${type.replace("registry:", "")}/_registry.mdx`,
+        `registry/items/components/items/${type.replace("registry:", "")}/_registry.mdx`,
         `---
 name: ${type.replace("registry:", "")}-fixture
 type: ${type}
@@ -221,7 +221,7 @@ type: registry:internal
   test("requires font metadata only for registry font items", () => {
     expect(() =>
       parseRegistryMdx(
-        "registry/items/fonts/inter/_registry.mdx",
+        "registry/items/components/fonts/inter/_registry.mdx",
         `---
 name: inter
 type: registry:font
@@ -232,7 +232,7 @@ type: registry:font
 
     expect(() =>
       parseRegistryMdx(
-        "registry/items/themes/theme/_registry.mdx",
+        "registry/items/components/themes/theme/_registry.mdx",
         `---
 name: theme
 type: registry:theme
@@ -249,21 +249,24 @@ font:
 
   test("rejects missing frontmatter", () => {
     expect(() =>
-      parseRegistryMdx("registry/items/components/toast/_registry.mdx", `Use the toast component.`),
+      parseRegistryMdx(
+        "registry/items/components/components/toast/_registry.mdx",
+        `Use the toast component.`,
+      ),
     ).toThrow(/must start with YAML frontmatter/u);
   });
 
   test("wraps invalid YAML errors with the registry item path", () => {
     expect(() =>
       parseRegistryMdx(
-        "registry/items/components/toast/_registry.mdx",
+        "registry/items/components/components/toast/_registry.mdx",
         `---
 name: [toast
 ---
 `,
       ),
     ).toThrow(
-      /Registry item registry\/items\/components\/toast\/_registry\.mdx contains invalid YAML frontmatter:/u,
+      /Registry item registry\/items\/components\/components\/toast\/_registry\.mdx contains invalid YAML frontmatter:/u,
     );
   });
 });

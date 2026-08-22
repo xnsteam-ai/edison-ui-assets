@@ -19,9 +19,9 @@ describe("prerender pages", () => {
     const pages = createPrerenderPages({
       docsPagePaths: ["/docs", "/docs/getting-started"],
       registryItems: [
-        { name: "alpha-card", type: "registry:ui" },
-        { name: "stats-grid", type: "registry:block" },
-        { name: "use-clipboard", type: "registry:hook" },
+        { name: "alpha-card", type: "registry:ui", domain: "components" },
+        { name: "stats-grid", type: "registry:block", domain: "components" },
+        { name: "use-clipboard", type: "registry:hook", domain: "components" },
       ],
     });
     const paths = pages.map((page) => page.path);

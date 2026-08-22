@@ -23,18 +23,21 @@ const fixtureRegistryItems = [
     title: "Alpha Card",
     description: "A compact card.",
     type: "registry:ui",
+    domain: "components",
   },
   {
     name: "stats-grid",
     title: "Stats Grid",
     description: "A dashboard block.",
     type: "registry:block",
+    domain: "components",
   },
   {
     name: "use-clipboard",
     title: "useClipboard",
     description: "A clipboard hook.",
     type: "registry:hook",
+    domain: "components",
   },
 ] as const;
 

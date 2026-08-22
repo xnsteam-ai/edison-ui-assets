@@ -56,7 +56,16 @@ export const registryCatalog = {
 } as const;
 
 /** Top-level `registry/items/{domain}/...` folder names. Each domain is its own installable sub-registry. */
-export const registryDomains = ["components", "icons", "fonts", "media"] as const;
+export const registryDomains = [
+  "components",
+  "templates",
+  "icons",
+  "logos",
+  "illustrations",
+  "fonts",
+  "images",
+  "videos",
+] as const;
 
 export type RegistryDomain = (typeof registryDomains)[number];
 

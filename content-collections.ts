@@ -8,6 +8,7 @@ import {
   parseRegistryMdxMetadataDocument,
   type ParsedRegistryMdx,
 } from "./src/lib/registry/mdx.ts";
+import { getRegistryDomainFromPath } from "./src/lib/registry/paths.ts";
 
 type SourceDocument = {
   _meta: {
@@ -83,6 +84,7 @@ const registryNavigationItems = defineCollection({
     return {
       name: item.name,
       type: item.type,
+      domain: getRegistryDomainFromPath(path),
       title: item.title ?? getDefaultRegistryTitle(item.name),
       description: item.description ?? "",
     };

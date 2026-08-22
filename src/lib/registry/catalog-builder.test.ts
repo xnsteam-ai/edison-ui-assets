@@ -6,7 +6,7 @@ describe("createRegistryMetadataItems", () => {
   test("requires non-empty files for registry:page items", () => {
     expect(() =>
       createRegistryMetadataItems({
-        "registry/items/pages/example/_registry.mdx": `---
+        "registry/items/components/pages/example/_registry.mdx": `---
 name: example-page
 type: registry:page
 ---
@@ -18,7 +18,7 @@ type: registry:page
   test("requires non-empty files for registry:file items", () => {
     expect(() =>
       createRegistryMetadataItems({
-        "registry/items/files/example/_registry.mdx": `---
+        "registry/items/components/files/example/_registry.mdx": `---
 name: example-file
 type: registry:file
 ---
@@ -29,7 +29,7 @@ type: registry:file
 
   test("allows registry:ui items without an explicit files array (default path)", () => {
     const items = createRegistryMetadataItems({
-      "registry/items/components/example/_registry.mdx": `---
+      "registry/items/components/components/example/_registry.mdx": `---
 name: example-ui
 type: registry:ui
 ---
@@ -48,7 +48,7 @@ type: registry:ui
 
   test("derives public install paths from item-relative source paths", () => {
     const items = createRegistryCatalogItems({
-      "registry/items/hooks/use-example/_registry.mdx": `---
+      "registry/items/components/hooks/use-example/_registry.mdx": `---
 name: use-example
 type: registry:hook
 files:
@@ -68,7 +68,7 @@ files:
     expect(items[0]?.sourceFiles).toMatchObject([
       {
         path: "hooks/use-example.ts",
-        sourcePath: "registry/items/hooks/use-example/use-example.ts",
+        sourcePath: "registry/items/components/hooks/use-example/use-example.ts",
         target: "@hooks/use-example.ts",
         type: "registry:hook",
       },
@@ -77,7 +77,7 @@ files:
 
   test("uses nested item-relative paths as source paths", () => {
     const items = createRegistryCatalogItems({
-      "registry/items/hooks/use-example/_registry.mdx": `---
+      "registry/items/components/hooks/use-example/_registry.mdx": `---
 name: use-example
 type: registry:hook
 files:
@@ -95,13 +95,13 @@ files:
       },
     ]);
     expect(items[0]?.sourceFiles[0]?.sourcePath).toBe(
-      "registry/items/hooks/use-example/hooks/use-example.ts",
+      "registry/items/components/hooks/use-example/hooks/use-example.ts",
     );
   });
 
   test("preserves target-based relative file paths because target controls installation", () => {
     const items = createRegistryCatalogItems({
-      "registry/items/pages/example/_registry.mdx": `---
+      "registry/items/components/pages/example/_registry.mdx": `---
 name: example-page
 type: registry:page
 files:
@@ -119,12 +119,14 @@ files:
         target: "app/example/page.tsx",
       },
     ]);
-    expect(items[0]?.sourceFiles[0]?.sourcePath).toBe("registry/items/pages/example/page.tsx");
+    expect(items[0]?.sourceFiles[0]?.sourcePath).toBe(
+      "registry/items/components/pages/example/page.tsx",
+    );
   });
 
   test("derives public install paths from nested item-relative file names", () => {
     const items = createRegistryCatalogItems({
-      "registry/items/components/example/_registry.mdx": `---
+      "registry/items/components/components/example/_registry.mdx": `---
 name: fixture-card
 type: registry:ui
 files:
@@ -142,13 +144,13 @@ files:
       },
     ]);
     expect(items[0]?.sourceFiles[0]?.sourcePath).toBe(
-      "registry/items/components/example/src/fixture-card.tsx",
+      "registry/items/components/components/example/src/fixture-card.tsx",
     );
   });
 
   test("does not normalize unsafe file paths before validation can report them", () => {
     const items = createRegistryCatalogItems({
-      "registry/items/components/example/_registry.mdx": `---
+      "registry/items/components/components/example/_registry.mdx": `---
 name: fixture-card
 type: registry:ui
 files:
@@ -180,7 +182,7 @@ files:
 
   test("preserves authored paths when explicit target placeholders control installation", () => {
     const items = createRegistryCatalogItems({
-      "registry/items/components/prompt-input/_registry.mdx": `---
+      "registry/items/components/components/prompt-input/_registry.mdx": `---
 name: prompt-input
 type: registry:ui
 files:
@@ -199,7 +201,7 @@ files:
       },
     ]);
     expect(items[0]?.sourceFiles[0]?.sourcePath).toBe(
-      "registry/items/components/prompt-input/prompt-input.tsx",
+      "registry/items/components/components/prompt-input/prompt-input.tsx",
     );
   });
 });

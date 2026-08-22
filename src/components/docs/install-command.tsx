@@ -3,7 +3,11 @@
 import { IconChevronDown } from "@tabler/icons-react";
 import * as React from "react";
 
-import { getCanonicalRegistryItemUrl } from "../../lib/site-config";
+import type { RegistryDomain } from "../../lib/registry/item-types";
+import {
+  getCanonicalDomainRegistryItemUrl,
+  getCanonicalRegistryItemUrl,
+} from "../../lib/site-config";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { CopyButton } from "../ui/copy-button";
@@ -198,13 +202,29 @@ type PackageManagerCommandProps = {
 type InstallCommandProps = {
   item: {
     name: string;
+    /** When present, the command installs through the item's own sub-registry. */
+    domain?: RegistryDomain;
   };
   className?: string;
 };
 
 export function getInstallCommand(itemName: string, packageManager: PackageManager): string {
-  const registryItemUrl = getCanonicalRegistryItemUrl(itemName);
+  return getInstallCommandForUrl(getCanonicalRegistryItemUrl(itemName), packageManager);
+}
 
+/** Install command that resolves through the item's own sub-registry, e.g. /r/components/copy-button.json. */
+export function getDomainInstallCommand(
+  domain: RegistryDomain,
+  itemName: string,
+  packageManager: PackageManager,
+): string {
+  return getInstallCommandForUrl(
+    getCanonicalDomainRegistryItemUrl(domain, itemName),
+    packageManager,
+  );
+}
+
+function getInstallCommandForUrl(registryItemUrl: string, packageManager: PackageManager): string {
   switch (packageManager) {
     case "bun":
       return `bunx --bun shadcn@latest add ${registryItemUrl}`;
@@ -303,7 +323,11 @@ export function InstallCommand({ item, className }: InstallCommandProps) {
     <PackageManagerCommand
       className={className}
       copyLabel="Copy install command"
-      getCommand={(packageManager) => getInstallCommand(item.name, packageManager)}
+      getCommand={(packageManager) =>
+        item.domain
+          ? getDomainInstallCommand(item.domain, item.name, packageManager)
+          : getInstallCommand(item.name, packageManager)
+      }
     />
   );
 }

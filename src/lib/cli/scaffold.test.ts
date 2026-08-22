@@ -15,14 +15,14 @@ describe("registry scaffold", () => {
   test("plans each supported registry item type in the expected folder", () => {
     const expectedSourcePaths = new Map<RegistryScaffoldItemType, string | null>([
       ["registry:base", null],
-      ["registry:block", "registry/items/blocks/example-item/example-item.tsx"],
-      ["registry:component", "registry/items/components/example-item/example-item.tsx"],
+      ["registry:block", "registry/items/components/blocks/example-item/example-item.tsx"],
+      ["registry:component", "registry/items/components/components/example-item/example-item.tsx"],
       ["registry:font", null],
-      ["registry:lib", "registry/items/lib/example-item/example-item.ts"],
-      ["registry:hook", "registry/items/hooks/example-item/example-item.ts"],
-      ["registry:ui", "registry/items/components/example-item/example-item.tsx"],
-      ["registry:page", "registry/items/pages/example-item/page.tsx"],
-      ["registry:file", "registry/items/files/example-item/example-item.ts"],
+      ["registry:lib", "registry/items/components/lib/example-item/example-item.ts"],
+      ["registry:hook", "registry/items/components/hooks/example-item/example-item.ts"],
+      ["registry:ui", "registry/items/components/components/example-item/example-item.tsx"],
+      ["registry:page", "registry/items/components/pages/example-item/page.tsx"],
+      ["registry:file", "registry/items/components/files/example-item/example-item.ts"],
       ["registry:style", null],
       ["registry:theme", null],
       ["registry:item", null],
@@ -129,7 +129,7 @@ describe("registry scaffold", () => {
     );
 
     expect(plan.files.map((file) => file.path)).toContain(
-      "registry/items/items/example-item/example-item.mdc",
+      "registry/items/components/items/example-item/example-item.mdc",
     );
     expect(getRegistryMdx(plan)).toContain("type: registry:file");
     expect(getRegistryMdx(plan)).toContain("path: example-item.mdc");
@@ -185,7 +185,7 @@ describe("registry scaffold", () => {
     );
 
     expect(plan.files.map((file) => file.path)).toContain(
-      "registry/items/files/example-item/example-item.css",
+      "registry/items/components/files/example-item/example-item.css",
     );
   });
 });
@@ -200,6 +200,7 @@ function getScaffoldInput(input: Partial<RegistryScaffoldInput> = {}): RegistryS
 
   return {
     type,
+    domain: input.domain ?? "components",
     name: input.name ?? "example-item",
     title: input.title ?? "Example Item",
     description: input.description ?? "A generated registry item.",
