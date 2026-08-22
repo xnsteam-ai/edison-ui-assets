@@ -586,13 +586,11 @@ function ResourceTile({
   }
 
   return (
-    <div className="group relative aspect-[4/3] overflow-hidden rounded-xl border bg-muted/30 transition-colors hover:border-foreground/20">
+    <div className="group @container relative aspect-[4/3] overflow-hidden rounded-xl border bg-muted/30 transition-colors hover:border-foreground/20">
       <div
         className={cn(
           "absolute inset-0 overflow-hidden",
-          density === "specimen"
-            ? "[&>*]:h-full [&>*]:w-full"
-            : "grid place-items-center px-4 py-11",
+          density === "specimen" ? "[&>*]:h-full [&>*]:w-full" : "grid place-items-center",
         )}
       >
         {assetUrl ? (
@@ -609,8 +607,10 @@ function ResourceTile({
               <Preview />
             </div>
           ) : (
-            // Fixed design width keeps previews from reflowing, then scales to fit the tile.
-            <div className="pointer-events-none w-[400px] shrink-0 scale-[0.62] select-none">
+            // Fixed design width keeps previews from reflowing; the container-relative scale then
+            // stretches them across the tile at every breakpoint instead of leaving them small and
+            // centred with dead margin around them.
+            <div className="pointer-events-none w-[400px] shrink-0 scale-[calc(94cqw/400px)] select-none">
               <Preview />
             </div>
           )
