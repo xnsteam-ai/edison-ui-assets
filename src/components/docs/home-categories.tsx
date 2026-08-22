@@ -11,6 +11,7 @@ import { siteConfig } from "../../lib/site-config";
 import { cn } from "../../lib/utils";
 import { CopyButton } from "../ui/copy-button";
 import { getDomainInstallCommand } from "./install-command";
+import { ItemPreviewDialog } from "./item-preview-dialog";
 
 export type HomeCategoryItem = {
   name: string;
@@ -18,6 +19,7 @@ export type HomeCategoryItem = {
   domain: RegistryDomain;
   title: string;
   description: string;
+  fontFamily?: string;
 };
 
 /**
@@ -126,6 +128,10 @@ const filters: readonly { id: CategoryFilter; label: string }[] = [
 export function HomeCategories({ items }: HomeCategoriesProps) {
   const [activeFilter, setActiveFilter] = React.useState<CategoryFilter>("all");
   const [query, setQuery] = React.useState("");
+  const [preview, setPreview] = React.useState<{
+    items: HomeCategoryItem[];
+    index: number;
+  } | null>(null);
 
   const normalizedQuery = query.trim().toLowerCase();
   const matchedItems = React.useMemo(() => {
@@ -218,11 +224,32 @@ export function HomeCategories({ items }: HomeCategoriesProps) {
                 category={category}
                 items={matchedItems.filter((item) => item.domain === category.id)}
                 isSearching={normalizedQuery.length > 0}
+                onOpen={(groupItems, itemIndex) =>
+                  setPreview({ items: [...groupItems], index: itemIndex })
+                }
               />
             ))}
           </div>
         )}
       </div>
+
+      {preview ? (
+        <ItemPreviewDialog
+          items={preview.items}
+          index={preview.index}
+          onIndexChange={(index) => setPreview((state) => (state ? { ...state, index } : state))}
+          onClose={() => setPreview(null)}
+          renderPreview={(name) => {
+            const Preview = previewsByItemName.get(name);
+
+            return Preview ? (
+              <Preview />
+            ) : (
+              <span className="text-sm text-muted-foreground">No preview available.</span>
+            );
+          }}
+        />
+      ) : null}
     </section>
   );
 }
@@ -231,10 +258,12 @@ function CategoryGroup({
   category,
   items,
   isSearching,
+  onOpen,
 }: {
   category: HomeCategory;
   items: readonly HomeCategoryItem[];
   isSearching: boolean;
+  onOpen: (items: readonly HomeCategoryItem[], index: number) => void;
 }) {
   if (isSearching && items.length === 0) {
     return null;
@@ -262,9 +291,13 @@ function CategoryGroup({
               "grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3",
           )}
         >
-          {items.map((item) => (
+          {items.map((item, itemIndex) => (
             <li key={`${item.domain}/${item.name}`}>
-              <ResourceTile item={item} density={category.density} />
+              <ResourceTile
+                item={item}
+                density={category.density}
+                onOpen={() => onOpen(items, itemIndex)}
+              />
             </li>
           ))}
         </ul>
@@ -277,11 +310,28 @@ function CategoryGroup({
   );
 }
 
-function ResourceTile({ item, density }: { item: HomeCategoryItem; density: CategoryDensity }) {
+function ResourceTile({
+  item,
+  density,
+  onOpen,
+}: {
+  item: HomeCategoryItem;
+  density: CategoryDensity;
+  onOpen: () => void;
+}) {
   const Preview = previewsByItemName.get(item.name);
   const itemHref = {
     to: "/$section/$name" as const,
     params: { section: getRegistrySectionIdForType(item.type), name: item.name },
+    // Plain clicks open the in-page preview; modified clicks keep normal link behaviour.
+    onClick: (event: React.MouseEvent) => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+        return;
+      }
+
+      event.preventDefault();
+      onOpen();
+    },
   };
 
   if (density === "card") {

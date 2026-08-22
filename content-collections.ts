@@ -87,6 +87,8 @@ const registryNavigationItems = defineCollection({
       domain: getRegistryDomainFromPath(path),
       title: item.title ?? getDefaultRegistryTitle(item.name),
       description: item.description ?? "",
+      // Lets the preview dialog render a live specimen for font items.
+      fontFamily: item.font?.family ?? "",
     };
   },
 });

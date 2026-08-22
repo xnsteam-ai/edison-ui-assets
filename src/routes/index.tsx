@@ -25,6 +25,7 @@ function HomePage() {
     domain: item.domain,
     title: item.title,
     description: item.description,
+    fontFamily: item.fontFamily,
   }));
 
   return (

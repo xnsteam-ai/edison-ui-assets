@@ -24,6 +24,7 @@ const fixtureRegistryItems = [
     description: "A compact card.",
     type: "registry:ui",
     domain: "components",
+    fontFamily: "",
   },
   {
     name: "stats-grid",
@@ -31,6 +32,7 @@ const fixtureRegistryItems = [
     description: "A dashboard block.",
     type: "registry:block",
     domain: "components",
+    fontFamily: "",
   },
   {
     name: "use-clipboard",
@@ -38,6 +40,7 @@ const fixtureRegistryItems = [
     description: "A clipboard hook.",
     type: "registry:hook",
     domain: "components",
+    fontFamily: "",
   },
 ] as const;
 
