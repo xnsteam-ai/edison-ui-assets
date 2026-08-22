@@ -118,7 +118,7 @@ const categories = [
     label: "Video",
     purpose: "Motion and video resources.",
     emptyHint: "Video resources will appear here as they're published.",
-    density: "specimen",
+    density: "card",
   },
 ] as const satisfies readonly HomeCategory[];
 
