@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 
 import type { DocsNavigationSection } from "./docs/catalog";
 import { createSiteNavigationSections } from "./navigation";
+import type { RegistryNavigationCatalogItem } from "./registry/catalog-navigation";
 
 const fixtureDocsSection = {
   id: "docs",
@@ -17,7 +18,7 @@ const fixtureDocsSection = {
   ],
 } satisfies DocsNavigationSection;
 
-const fixtureRegistryItems = [
+const fixtureRegistryItems: RegistryNavigationCatalogItem[] = [
   {
     name: "alpha-card",
     title: "Alpha Card",
@@ -25,6 +26,7 @@ const fixtureRegistryItems = [
     type: "registry:ui",
     domain: "components",
     fontFamily: "",
+    controls: [],
   },
   {
     name: "stats-grid",
@@ -33,6 +35,7 @@ const fixtureRegistryItems = [
     type: "registry:block",
     domain: "components",
     fontFamily: "",
+    controls: [],
   },
   {
     name: "use-clipboard",
@@ -41,6 +44,7 @@ const fixtureRegistryItems = [
     type: "registry:hook",
     domain: "components",
     fontFamily: "",
+    controls: [],
   },
 ] as const;
 

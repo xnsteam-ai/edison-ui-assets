@@ -5,6 +5,7 @@ import type {
 } from "shadcn/schema";
 
 import { siteConfig } from "../site-config";
+import type { RegistryControlDefinition } from "./controls";
 import type { PrivateRegistryItemType, RegistryDomain, RegistryItemType } from "./item-types";
 
 export const registryConfig = {
@@ -48,6 +49,8 @@ export type RegistryItemDefinition = Omit<
   files?: RegistryFileDefinition[];
   config?: ShadcnRegistryBaseItem["config"];
   font?: ShadcnRegistryFontItem["font"];
+  /** Preview-panel schema. Authoring-only: never published to the shadcn item JSON. */
+  controls?: RegistryControlDefinition[];
 };
 
 export type RegistryItemAuthoringDefinition = Omit<RegistryItemDefinition, "files"> & {

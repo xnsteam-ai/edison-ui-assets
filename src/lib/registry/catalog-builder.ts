@@ -301,7 +301,9 @@ function toRegistryItemDefinition(
   files: RegistrySourceFileDefinition[],
 ): RegistryItemDefinition {
   const displayItem = toRegistryDisplayItemDefinition(item, files);
-  const { files: registryFiles, ...itemWithoutFiles } = displayItem;
+  // `controls` is authoring-only. It must not reach the metadata items, which are asserted to
+  // deep-equal the published registry index JSON.
+  const { files: registryFiles, controls: _controls, ...itemWithoutFiles } = displayItem;
 
   return registryFiles.length > 0
     ? {

@@ -89,6 +89,8 @@ const registryNavigationItems = defineCollection({
       description: item.description ?? "",
       // Lets the preview dialog render a live specimen for font items.
       fontFamily: item.font?.family ?? "",
+      // Schema for the preview properties panel.
+      controls: item.controls ?? [],
     };
   },
 });

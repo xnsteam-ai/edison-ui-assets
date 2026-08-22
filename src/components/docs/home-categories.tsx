@@ -4,6 +4,7 @@ import { IconArrowUpRight, IconSearch } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 import * as React from "react";
 
+import type { RegistryControlDefinition } from "../../lib/registry/controls";
 import type { RegistryDomain, RegistryItemType } from "../../lib/registry/item-types";
 import { getRegistryTypeLabel } from "../../lib/registry/item-types";
 import { getRegistrySectionIdForType } from "../../lib/registry/sections";
@@ -20,6 +21,7 @@ export type HomeCategoryItem = {
   title: string;
   description: string;
   fontFamily?: string;
+  controls?: RegistryControlDefinition[];
 };
 
 /**
@@ -48,7 +50,7 @@ type HomeCategoriesProps = {
 type CategoryFilter = "all" | RegistryDomain;
 
 /** Live `Preview` exports, keyed by item name, so tiles show the real component. */
-const previewModules = import.meta.glob<React.ComponentType>(
+const previewModules = import.meta.glob<React.ComponentType<Record<string, unknown>>>(
   "../../../registry/items/**/_preview.tsx",
   { eager: true, import: "Preview" },
 );
@@ -239,11 +241,12 @@ export function HomeCategories({ items }: HomeCategoriesProps) {
           index={preview.index}
           onIndexChange={(index) => setPreview((state) => (state ? { ...state, index } : state))}
           onClose={() => setPreview(null)}
-          renderPreview={(name) => {
+          iconNames={items.filter((entry) => entry.domain === "icons").map((entry) => entry.name)}
+          renderPreview={(name, previewValues) => {
             const Preview = previewsByItemName.get(name);
 
             return Preview ? (
-              <Preview />
+              <Preview {...previewValues} />
             ) : (
               <span className="text-sm text-muted-foreground">No preview available.</span>
             );

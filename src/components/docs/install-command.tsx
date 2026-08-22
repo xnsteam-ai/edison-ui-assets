@@ -224,7 +224,10 @@ export function getDomainInstallCommand(
   );
 }
 
-function getInstallCommandForUrl(registryItemUrl: string, packageManager: PackageManager): string {
+export function getInstallCommandForUrl(
+  registryItemUrl: string,
+  packageManager: PackageManager,
+): string {
   switch (packageManager) {
     case "bun":
       return `bunx --bun shadcn@latest add ${registryItemUrl}`;

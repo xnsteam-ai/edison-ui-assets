@@ -32,6 +32,7 @@ import { Route as SectionChar123nameChar125DotmdRouteImport } from './routes/$se
 import { Route as SectionNameRouteImport } from './routes/$section.$name'
 import { Route as RDomainChar123nameChar125DotjsonRouteImport } from './routes/r/$domain/{$name}[.]json'
 import { Route as RDomainRegistryDotjsonRouteImport } from './routes/r/$domain/registry[.]json'
+import { Route as RcDomainNameChar123configChar125DotjsonRouteImport } from './routes/rc/$domain/$name/{$config}[.]json'
 
 const UtilitiesDotmdRoute = UtilitiesDotmdRouteImport.update({
   id: '/utilities.md',
@@ -153,6 +154,12 @@ const RDomainRegistryDotjsonRoute = RDomainRegistryDotjsonRouteImport.update({
   path: '/r/$domain/registry.json',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RcDomainNameChar123configChar125DotjsonRoute =
+  RcDomainNameChar123configChar125DotjsonRouteImport.update({
+    id: '/rc/$domain/$name/{$config}.json',
+    path: '/rc/$domain/$name/{$config}.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/registry/': typeof RegistryIndexRoute
   '/r/$domain/registry.json': typeof RDomainRegistryDotjsonRoute
   '/r/$domain/{$name}.json': typeof RDomainChar123nameChar125DotjsonRoute
+  '/rc/$domain/$name/{$config}.json': typeof RcDomainNameChar123configChar125DotjsonRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -203,6 +211,7 @@ export interface FileRoutesByTo {
   '/registry': typeof RegistryIndexRoute
   '/r/$domain/registry.json': typeof RDomainRegistryDotjsonRoute
   '/r/$domain/{$name}.json': typeof RDomainChar123nameChar125DotjsonRoute
+  '/rc/$domain/$name/{$config}.json': typeof RcDomainNameChar123configChar125DotjsonRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -229,6 +238,7 @@ export interface FileRoutesById {
   '/registry/': typeof RegistryIndexRoute
   '/r/$domain/registry.json': typeof RDomainRegistryDotjsonRoute
   '/r/$domain/{$name}.json': typeof RDomainChar123nameChar125DotjsonRoute
+  '/rc/$domain/$name/{$config}.json': typeof RcDomainNameChar123configChar125DotjsonRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/registry/'
     | '/r/$domain/registry.json'
     | '/r/$domain/{$name}.json'
+    | '/rc/$domain/$name/{$config}.json'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/registry'
     | '/r/$domain/registry.json'
     | '/r/$domain/{$name}.json'
+    | '/rc/$domain/$name/{$config}.json'
   id:
     | '__root__'
     | '/'
@@ -306,6 +318,7 @@ export interface FileRouteTypes {
     | '/registry/'
     | '/r/$domain/registry.json'
     | '/r/$domain/{$name}.json'
+    | '/rc/$domain/$name/{$config}.json'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -332,6 +345,7 @@ export interface RootRouteChildren {
   RegistryIndexRoute: typeof RegistryIndexRoute
   RDomainRegistryDotjsonRoute: typeof RDomainRegistryDotjsonRoute
   RDomainChar123nameChar125DotjsonRoute: typeof RDomainChar123nameChar125DotjsonRoute
+  RcDomainNameChar123configChar125DotjsonRoute: typeof RcDomainNameChar123configChar125DotjsonRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -497,6 +511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RDomainRegistryDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rc/$domain/$name/{$config}.json': {
+      id: '/rc/$domain/$name/{$config}.json'
+      path: '/rc/$domain/$name/{$config}.json'
+      fullPath: '/rc/$domain/$name/{$config}.json'
+      preLoaderRoute: typeof RcDomainNameChar123configChar125DotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -524,6 +545,8 @@ const rootRouteChildren: RootRouteChildren = {
   RegistryIndexRoute: RegistryIndexRoute,
   RDomainRegistryDotjsonRoute: RDomainRegistryDotjsonRoute,
   RDomainChar123nameChar125DotjsonRoute: RDomainChar123nameChar125DotjsonRoute,
+  RcDomainNameChar123configChar125DotjsonRoute:
+    RcDomainNameChar123configChar125DotjsonRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

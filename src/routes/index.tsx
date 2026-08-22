@@ -26,6 +26,7 @@ function HomePage() {
     title: item.title,
     description: item.description,
     fontFamily: item.fontFamily,
+    controls: item.controls,
   }));
 
   return (

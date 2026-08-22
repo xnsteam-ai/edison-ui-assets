@@ -6,19 +6,22 @@ import {
   IconChevronRight,
   IconDotsVertical,
   IconDownload,
-  IconLayoutSidebarRightCollapse,
-  IconLayoutSidebarRightExpand,
   IconLink,
   IconX,
 } from "@tabler/icons-react";
 import * as React from "react";
 
+import type { RegistryControlDefinition, RegistryControlValues } from "../../lib/registry/controls";
+import { getRegistryControlDefaults } from "../../lib/registry/controls";
+import { encodeItemConfig } from "../../lib/registry/item-config";
 import type { RegistryDomain } from "../../lib/registry/item-types";
 import { getRegistryTypeLabel } from "../../lib/registry/item-types";
 import { getRegistrySectionIdForType } from "../../lib/registry/sections";
 import {
   getCanonicalDomainRegistryItemPath,
   getCanonicalDomainRegistryItemUrl,
+  getCustomizedRegistryItemPath,
+  getCustomizedRegistryItemUrl,
   siteConfig,
 } from "../../lib/site-config";
 import { cn } from "../../lib/utils";
@@ -31,7 +34,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { getDomainInstallCommand } from "./install-command";
+import { getInstallCommandForUrl } from "./install-command";
+import { PropertyControls } from "./property-controls";
 
 export type PreviewDialogItem = {
   name: string;
@@ -40,6 +44,7 @@ export type PreviewDialogItem = {
   title: string;
   description: string;
   fontFamily?: string;
+  controls?: RegistryControlDefinition[];
 };
 
 type ItemPreviewDialogProps = {
@@ -47,7 +52,8 @@ type ItemPreviewDialogProps = {
   index: number;
   onIndexChange: (index: number) => void;
   onClose: () => void;
-  renderPreview: (name: string) => React.ReactNode;
+  renderPreview: (name: string, values: RegistryControlValues) => React.ReactNode;
+  iconNames: readonly string[];
 };
 
 type CanvasTheme = "light" | "dark";
@@ -73,14 +79,20 @@ export function ItemPreviewDialog({
   onIndexChange,
   onClose,
   renderPreview,
+  iconNames,
 }: ItemPreviewDialogProps) {
   const item = items[index];
+  const itemName = item?.name;
+  const controls = React.useMemo(() => item?.controls ?? [], [item]);
 
   const [panelOpen, setPanelOpen] = React.useState(true);
   const [theme, setTheme] = React.useState<CanvasTheme>("light");
   const [surface, setSurface] = React.useState<CanvasSurface>("surface");
   const [zoom, setZoom] = React.useState(100);
   const [viewport, setViewport] = React.useState<Viewport>("desktop");
+  const [values, setValues] = React.useState<RegistryControlValues>(() =>
+    getRegistryControlDefaults(controls),
+  );
 
   // Icon-specific, applied as real CSS on the rendered svg.
   const [iconSize, setIconSize] = React.useState(24);
@@ -95,6 +107,12 @@ export function ItemPreviewDialog({
   const [exporting, setExporting] = React.useState(false);
   const [exportError, setExportError] = React.useState<string | null>(null);
   const [linkCopied, setLinkCopied] = React.useState(false);
+
+  // Paging to another item must not carry the previous item's values.
+  React.useEffect(() => {
+    setValues(getRegistryControlDefaults(controls));
+    setExportError(null);
+  }, [controls, itemName]);
 
   React.useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -117,8 +135,35 @@ export function ItemPreviewDialog({
   const itemPath = `/${getRegistrySectionIdForType(item.type as never)}/${item.name}`;
   const namespaced = `${siteConfig.subRegistries[item.domain].namespace}/${item.name}`;
 
+  const config = encodeItemConfig(controls, values);
+  const installUrl = config
+    ? getCustomizedRegistryItemUrl(item.domain, item.name, config)
+    : getCanonicalDomainRegistryItemUrl(item.domain, item.name);
+  const jsonPath = config
+    ? getCustomizedRegistryItemPath(item.domain, item.name, config)
+    : getCanonicalDomainRegistryItemPath(item.domain, item.name);
+
+  // Controls that declare a `cssVar` also drive the canvas tokens, so parts of a component that
+  // aren't individually schema'd still respond.
+  const tokenStyle: Record<string, string> = {};
+
+  for (const control of controls) {
+    const value = values[control.id];
+
+    if (control.cssVar && (typeof value === "string" || typeof value === "number")) {
+      tokenStyle[control.cssVar] =
+        typeof value === "number" ? `${value}${control.unit ?? "px"}` : value;
+    }
+  }
+
   async function copyLink() {
-    await navigator.clipboard.writeText(`${window.location.origin}${itemPath}`);
+    const url = new URL(`${window.location.origin}${itemPath}`);
+
+    if (config) {
+      url.searchParams.set("c", config);
+    }
+
+    await navigator.clipboard.writeText(url.toString());
     setLinkCopied(true);
     window.setTimeout(() => setLinkCopied(false), 2000);
   }
@@ -128,7 +173,7 @@ export function ItemPreviewDialog({
     setExportError(null);
 
     try {
-      const response = await fetch(getCanonicalDomainRegistryItemPath(item.domain, item.name));
+      const response = await fetch(jsonPath);
 
       if (!response.ok) {
         throw new Error(`Registry responded ${response.status}`);
@@ -183,117 +228,114 @@ export function ItemPreviewDialog({
           </Button>
         </div>
 
-        <div className="flex min-h-0 flex-1 overflow-hidden rounded-xl bg-background ring-1 ring-foreground/10">
-          <div className="flex min-w-0 flex-1 flex-col">
-            {/* Window chrome */}
-            <div className="flex items-center gap-3 border-b px-4 py-2.5">
-              <div className="flex gap-1.5" aria-hidden="true">
-                <span className="size-3 rounded-full bg-[#ff5f57]" />
-                <span className="size-3 rounded-full bg-[#febc2e]" />
-                <span className="size-3 rounded-full bg-[#28c840]" />
-              </div>
-              <span className="truncate text-sm font-medium">{item.title}</span>
-              <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                {getRegistryTypeLabel(item.type as never)}
-              </span>
-              <div className="ml-auto flex items-center gap-1">
-                <CopyButton
-                  value={() => getDomainInstallCommand(item.domain, item.name, "npm")}
-                  copyLabel="Copy install command"
-                  copiedLabel="Copied"
-                  resetDelay={2000}
-                  variant="ghost"
-                  size="sm"
-                  showLabel
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => void exportSource()}
-                  disabled={exporting}
-                >
-                  <IconDownload data-icon="inline-start" />
-                  {exporting ? "Exporting…" : "Export"}
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => void copyLink()}>
-                  {linkCopied ? (
-                    <IconCheck data-icon="inline-start" />
-                  ) : (
-                    <IconLink data-icon="inline-start" />
-                  )}
-                  {linkCopied ? "Copied" : "Copy link"}
-                </Button>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={<Button variant="ghost" size="icon-sm" aria-label="More options" />}
-                  >
-                    <IconDotsVertical />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="min-w-56">
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem
-                        closeOnClick
-                        onClick={() => {
-                          window.location.href = itemPath;
-                        }}
-                      >
-                        Open full page
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        closeOnClick
-                        onClick={() => {
-                          void navigator.clipboard.writeText(namespaced);
-                        }}
-                      >
-                        Copy namespaced id
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        closeOnClick
-                        onClick={() => {
-                          void navigator.clipboard.writeText(
-                            getCanonicalDomainRegistryItemUrl(item.domain, item.name),
-                          );
-                        }}
-                      >
-                        Copy registry JSON URL
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        closeOnClick
-                        onClick={() => {
-                          window.open(siteConfig.repositoryUrl, "_blank", "noopener,noreferrer");
-                        }}
-                      >
-                        View repository
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={panelOpen ? "Hide properties" : "Show properties"}
-                  aria-expanded={panelOpen}
-                  onClick={() => setPanelOpen((open) => !open)}
-                >
-                  {panelOpen ? (
-                    <IconLayoutSidebarRightCollapse />
-                  ) : (
-                    <IconLayoutSidebarRightExpand />
-                  )}
-                </Button>
-              </div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl bg-background ring-1 ring-foreground/10">
+          {/* Window chrome */}
+          <div className="flex items-center gap-3 border-b px-4 py-2.5">
+            <div className="flex gap-1.5" aria-hidden="true">
+              <span className="size-3 rounded-full bg-[#ff5f57]" />
+              <span className="size-3 rounded-full bg-[#febc2e]" />
+              <span className="size-3 rounded-full bg-[#28c840]" />
             </div>
+            <span className="truncate text-sm font-medium">{item.title}</span>
+            <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+              {getRegistryTypeLabel(item.type as never)}
+            </span>
+            {config ? (
+              <span className="rounded-md bg-foreground px-1.5 py-0.5 text-[10px] text-background">
+                Customised
+              </span>
+            ) : null}
+            <div className="ml-auto flex items-center gap-1">
+              <CopyButton
+                value={() => getInstallCommandForUrl(installUrl, "npm")}
+                copyLabel="Copy install command"
+                copiedLabel="Copied"
+                resetDelay={2000}
+                variant="ghost"
+                size="sm"
+                showLabel
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => void exportSource()}
+                disabled={exporting}
+              >
+                <IconDownload data-icon="inline-start" />
+                {exporting ? "Exporting…" : "Export"}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => void copyLink()}>
+                {linkCopied ? (
+                  <IconCheck data-icon="inline-start" />
+                ) : (
+                  <IconLink data-icon="inline-start" />
+                )}
+                {linkCopied ? "Copied" : "Copy link"}
+              </Button>
 
-            {/* Canvas */}
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={<Button variant="ghost" size="icon-sm" aria-label="More options" />}
+                >
+                  <IconDotsVertical />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-56">
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem
+                      closeOnClick
+                      onClick={() => {
+                        window.location.href = itemPath;
+                      }}
+                    >
+                      Open full page
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      closeOnClick
+                      onClick={() => {
+                        void navigator.clipboard.writeText(namespaced);
+                      }}
+                    >
+                      Copy namespaced id
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      closeOnClick
+                      onClick={() => {
+                        void navigator.clipboard.writeText(installUrl);
+                      }}
+                    >
+                      Copy registry JSON URL
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      closeOnClick
+                      disabled={controls.length === 0}
+                      onClick={() => setValues(getRegistryControlDefaults(controls))}
+                    >
+                      Reset properties
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      closeOnClick
+                      onClick={() => {
+                        window.open(siteConfig.repositoryUrl, "_blank", "noopener,noreferrer");
+                      }}
+                    >
+                      View repository
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          {/* Canvas, with the properties panel overlaying it */}
+          <div className="relative min-h-0 flex-1">
             <div
               data-theme={theme}
               className={cn(
-                "relative flex min-h-0 flex-1 items-center justify-center overflow-auto p-8 text-foreground",
+                "absolute inset-0 flex items-center justify-center overflow-auto p-8 text-foreground",
                 theme === "dark" ? "stark-canvas-dark" : "stark-canvas-light",
                 surfaces[surface],
               )}
+              style={tokenStyle}
             >
               <div
                 className="flex items-center justify-center transition-[width]"
@@ -331,193 +373,244 @@ export function ItemPreviewDialog({
                       {sampleText || "Type something"}
                     </span>
                   ) : (
-                    renderPreview(item.name)
+                    renderPreview(item.name, values)
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Pager */}
-            <div className="flex items-center justify-center gap-4 border-t px-4 py-2.5">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Previous item"
-                disabled={index === 0}
-                onClick={() => onIndexChange(index - 1)}
-              >
-                <IconChevronLeft />
-              </Button>
-              <span className="text-xs text-muted-foreground tabular-nums">
-                {index + 1} of {items.length}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Next item"
-                disabled={index === items.length - 1}
-                onClick={() => onIndexChange(index + 1)}
-              >
-                <IconChevronRight />
-              </Button>
-            </div>
-          </div>
-
-          {/* Properties panel */}
-          {panelOpen ? (
-            <aside
-              aria-label="Properties"
-              className="hidden w-72 shrink-0 flex-col gap-5 overflow-y-auto border-l p-4 md:flex"
+            {/* Arrow toggle, pinned to the panel edge */}
+            <Button
+              variant="outline"
+              size="icon-sm"
+              aria-label={panelOpen ? "Hide properties" : "Show properties"}
+              aria-expanded={panelOpen}
+              onClick={() => setPanelOpen((open) => !open)}
+              className={cn(
+                "absolute top-3 z-20 rounded-full shadow-sm transition-[right]",
+                panelOpen ? "right-[19rem]" : "right-3",
+              )}
             >
-              <div className="flex flex-col gap-1">
-                <h2 className="text-sm font-medium">Properties</h2>
-                <p className="text-xs text-muted-foreground">{item.description}</p>
-              </div>
+              {panelOpen ? <IconChevronRight /> : <IconChevronLeft />}
+            </Button>
 
-              <Field label="Theme">
-                <Segmented
-                  value={theme}
-                  onChange={setTheme}
-                  options={[
-                    { value: "light", label: "Light" },
-                    { value: "dark", label: "Dark" },
-                  ]}
-                />
-              </Field>
+            {panelOpen ? (
+              <aside
+                aria-label="Properties"
+                className="absolute inset-y-0 right-0 z-10 flex w-72 flex-col gap-5 overflow-y-auto border-l bg-background/95 p-4 shadow-xl backdrop-blur-sm"
+              >
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-sm font-medium">Properties</h2>
+                  <p className="text-xs text-muted-foreground">{item.description}</p>
+                </div>
 
-              <Field label="Surface">
-                <Segmented
-                  value={surface}
-                  onChange={setSurface}
-                  options={[
-                    { value: "surface", label: "Surface" },
-                    { value: "canvas", label: "Canvas" },
-                    { value: "grid", label: "Grid" },
-                  ]}
-                />
-              </Field>
+                <section className="flex flex-col gap-3">
+                  <h3 className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                    Canvas
+                  </h3>
 
-              <Field label={`Zoom — ${zoom}%`}>
-                <input
-                  type="range"
-                  min={50}
-                  max={200}
-                  step={10}
-                  value={zoom}
-                  onChange={(event) => setZoom(Number(event.target.value))}
-                  className="w-full accent-foreground"
-                  aria-label="Zoom"
-                />
-              </Field>
-
-              {isTemplate ? (
-                <Field label="Viewport">
-                  <Segmented
-                    value={viewport}
-                    onChange={setViewport}
-                    options={[
-                      { value: "desktop", label: "Desktop" },
-                      { value: "tablet", label: "Tablet" },
-                      { value: "mobile", label: "Mobile" },
-                    ]}
-                  />
-                </Field>
-              ) : null}
-
-              {isIcon ? (
-                <>
-                  <Field label={`Size — ${iconSize}px`}>
-                    <input
-                      type="range"
-                      min={16}
-                      max={96}
-                      step={2}
-                      value={iconSize}
-                      onChange={(event) => setIconSize(Number(event.target.value))}
-                      className="w-full accent-foreground"
-                      aria-label="Icon size"
-                    />
-                  </Field>
-                  <Field label={`Stroke — ${iconStroke}`}>
-                    <input
-                      type="range"
-                      min={0.5}
-                      max={3}
-                      step={0.25}
-                      value={iconStroke}
-                      onChange={(event) => setIconStroke(Number(event.target.value))}
-                      className="w-full accent-foreground"
-                      aria-label="Icon stroke width"
-                    />
-                  </Field>
-                  <Field label="Color">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={iconColor || "#000000"}
-                        onChange={(event) => setIconColor(event.target.value)}
-                        className="size-8 cursor-pointer rounded border bg-transparent"
-                        aria-label="Icon color"
-                      />
-                      <Button variant="outline" size="sm" onClick={() => setIconColor("")}>
-                        Inherit
-                      </Button>
-                    </div>
-                  </Field>
-                </>
-              ) : null}
-
-              {isFont ? (
-                <>
-                  <Field label="Sample text">
-                    <input
-                      type="text"
-                      value={sampleText}
-                      onChange={(event) => setSampleText(event.target.value)}
-                      className="h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                      aria-label="Sample text"
-                    />
-                  </Field>
-                  <Field label={`Weight — ${fontWeight}`}>
+                  <Field label="Theme">
                     <Segmented
-                      value={String(fontWeight)}
-                      onChange={(value) => setFontWeight(Number(value))}
+                      value={theme}
+                      onChange={setTheme}
                       options={[
-                        { value: "400", label: "400" },
-                        { value: "500", label: "500" },
-                        { value: "700", label: "700" },
+                        { value: "light", label: "Light" },
+                        { value: "dark", label: "Dark" },
                       ]}
                     />
                   </Field>
-                  <Field label={`Size — ${fontSize}px`}>
-                    <input
-                      type="range"
-                      min={16}
-                      max={140}
-                      step={4}
-                      value={fontSize}
-                      onChange={(event) => setFontSize(Number(event.target.value))}
-                      className="w-full accent-foreground"
-                      aria-label="Font size"
+
+                  <Field label="Surface">
+                    <Segmented
+                      value={surface}
+                      onChange={setSurface}
+                      options={[
+                        { value: "surface", label: "Surface" },
+                        { value: "canvas", label: "Canvas" },
+                        { value: "grid", label: "Grid" },
+                      ]}
                     />
                   </Field>
-                </>
-              ) : null}
 
-              <div className="mt-auto flex flex-col gap-2 border-t pt-4">
-                <code className="truncate rounded-md bg-muted px-2 py-1 font-mono text-[11px] text-muted-foreground">
-                  {namespaced}
-                </code>
-                {exportError ? (
-                  <p className="text-xs text-destructive">{exportError}</p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Export downloads this item&apos;s published source files.
-                  </p>
-                )}
-              </div>
-            </aside>
-          ) : null}
+                  <Field label={`Zoom — ${zoom}%`}>
+                    <input
+                      type="range"
+                      min={50}
+                      max={200}
+                      step={10}
+                      value={zoom}
+                      onChange={(event) => setZoom(Number(event.target.value))}
+                      className="w-full accent-foreground"
+                      aria-label="Zoom"
+                    />
+                  </Field>
+
+                  {isTemplate ? (
+                    <Field label="Viewport">
+                      <Segmented
+                        value={viewport}
+                        onChange={setViewport}
+                        options={[
+                          { value: "desktop", label: "Desktop" },
+                          { value: "tablet", label: "Tablet" },
+                          { value: "mobile", label: "Mobile" },
+                        ]}
+                      />
+                    </Field>
+                  ) : null}
+                </section>
+
+                {controls.length > 0 ? (
+                  <PropertyControls
+                    controls={controls}
+                    values={values}
+                    iconNames={iconNames}
+                    onChange={(id, value) => setValues((current) => ({ ...current, [id]: value }))}
+                  />
+                ) : null}
+
+                {isIcon ? (
+                  <section className="flex flex-col gap-3">
+                    <h3 className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                      Icon
+                    </h3>
+                    <Field label={`Size — ${iconSize}px`}>
+                      <input
+                        type="range"
+                        min={16}
+                        max={96}
+                        step={2}
+                        value={iconSize}
+                        onChange={(event) => setIconSize(Number(event.target.value))}
+                        className="w-full accent-foreground"
+                        aria-label="Icon size"
+                      />
+                    </Field>
+                    <Field label={`Stroke — ${iconStroke}`}>
+                      <input
+                        type="range"
+                        min={0.5}
+                        max={3}
+                        step={0.25}
+                        value={iconStroke}
+                        onChange={(event) => setIconStroke(Number(event.target.value))}
+                        className="w-full accent-foreground"
+                        aria-label="Icon stroke width"
+                      />
+                    </Field>
+                    <Field label="Color">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={iconColor || "#000000"}
+                          onChange={(event) => setIconColor(event.target.value)}
+                          className="size-8 cursor-pointer rounded border bg-transparent"
+                          aria-label="Icon color"
+                        />
+                        <Button variant="outline" size="sm" onClick={() => setIconColor("")}>
+                          Inherit
+                        </Button>
+                      </div>
+                    </Field>
+                  </section>
+                ) : null}
+
+                {isFont ? (
+                  <section className="flex flex-col gap-3">
+                    <h3 className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                      Type
+                    </h3>
+                    <Field label="Sample text">
+                      <input
+                        type="text"
+                        value={sampleText}
+                        onChange={(event) => setSampleText(event.target.value)}
+                        className="h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                        aria-label="Sample text"
+                      />
+                    </Field>
+                    <Field label={`Weight — ${fontWeight}`}>
+                      <Segmented
+                        value={String(fontWeight)}
+                        onChange={(value) => setFontWeight(Number(value))}
+                        options={[
+                          { value: "400", label: "400" },
+                          { value: "500", label: "500" },
+                          { value: "700", label: "700" },
+                        ]}
+                      />
+                    </Field>
+                    <Field label={`Size — ${fontSize}px`}>
+                      <input
+                        type="range"
+                        min={16}
+                        max={140}
+                        step={4}
+                        value={fontSize}
+                        onChange={(event) => setFontSize(Number(event.target.value))}
+                        className="w-full accent-foreground"
+                        aria-label="Font size"
+                      />
+                    </Field>
+                  </section>
+                ) : null}
+
+                {controls.length > 0 ? (
+                  <section className="flex flex-col gap-2">
+                    <h3 className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                      Config JSON
+                    </h3>
+                    <pre
+                      aria-label="Live config JSON"
+                      className="max-h-40 overflow-auto rounded-lg bg-muted p-2 font-mono text-[10px] leading-relaxed text-muted-foreground"
+                    >
+                      {JSON.stringify(values, null, 2)}
+                    </pre>
+                  </section>
+                ) : null}
+
+                <div className="mt-auto flex flex-col gap-2 border-t pt-4">
+                  <code className="truncate rounded-md bg-muted px-2 py-1 font-mono text-[11px] text-muted-foreground">
+                    {namespaced}
+                  </code>
+                  {exportError ? (
+                    <p className="text-xs text-destructive">{exportError}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      {config
+                        ? "Copy command, Export and Copy link all carry your changes."
+                        : "Export downloads this item's published source files."}
+                    </p>
+                  )}
+                </div>
+              </aside>
+            ) : null}
+          </div>
+
+          {/* Pager */}
+          <div className="flex items-center justify-center gap-4 border-t px-4 py-2.5">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Previous item"
+              disabled={index === 0}
+              onClick={() => onIndexChange(index - 1)}
+            >
+              <IconChevronLeft />
+            </Button>
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {index + 1} of {items.length}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Next item"
+              disabled={index === items.length - 1}
+              onClick={() => onIndexChange(index + 1)}
+            >
+              <IconChevronRight />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ import {
   type MdxAstNode,
 } from "../content/mdx.ts";
 import { getCanonicalRegistryItemUrl } from "../site-config.ts";
+import { isRegistryControlDefinition } from "./controls.ts";
 import { isPublicRegistryItemType } from "./item-types.ts";
 import type { RegistryFileAuthoringDefinition, RegistryItemAuthoringDefinition } from "./metadata";
 
@@ -29,6 +30,7 @@ const knownFrontmatterFields = new Set([
   "author",
   "categories",
   "config",
+  "controls",
   "css",
   "cssVars",
   "dependencies",
@@ -158,6 +160,7 @@ function assertRegistryMdxFrontmatter(
   assertBaseConfigField(path, value, type);
   assertFontField(path, value, type);
   assertOptionalRegistryFiles(path, value);
+  assertOptionalControls(path, value);
 }
 
 function assertBaseConfigField(path: string, value: Record<string, unknown>, type: string): void {
@@ -197,6 +200,32 @@ function toRegistryItemAuthoringDefinition(
     ...item,
     registryDependencies: [...new Set(registryDependencies)],
   };
+}
+
+function assertOptionalControls(path: string, value: Record<string, unknown>): void {
+  const controls = value.controls;
+
+  if (controls === undefined) {
+    return;
+  }
+
+  if (!Array.isArray(controls)) {
+    throw new Error(`Registry item ${path} frontmatter field "controls" must be an array.`);
+  }
+
+  const seen = new Set<string>();
+
+  for (const control of controls) {
+    if (!isRegistryControlDefinition(control)) {
+      throw new Error(`Registry item ${path} contains an invalid controls entry.`);
+    }
+
+    if (seen.has(control.id)) {
+      throw new Error(`Registry item ${path} has a duplicate control id "${control.id}".`);
+    }
+
+    seen.add(control.id);
+  }
 }
 
 function assertOptionalRegistryFiles(path: string, value: Record<string, unknown>): void {
