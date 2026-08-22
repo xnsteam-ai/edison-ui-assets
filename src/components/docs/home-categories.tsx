@@ -25,8 +25,9 @@ export type HomeCategoryItem = {
  * `specimen` — full-bleed tile where the preview supplies its own background,
  *              used for type specimens and media where the setting is the point.
  * `mark`     — container-less squircle: the artwork is the tile, no card chrome.
+ * `art`      — soft tinted panel, no border: line illustrations with room to breathe.
  */
-type CategoryDensity = "preview" | "compact" | "specimen" | "mark";
+type CategoryDensity = "preview" | "compact" | "specimen" | "mark" | "art";
 
 type HomeCategory = {
   id: RegistryDomain;
@@ -90,7 +91,7 @@ const categories = [
     label: "Illustration",
     purpose: "Stark illustrations and brand graphics.",
     emptyHint: "Illustrations will appear here as they're published.",
-    density: "compact",
+    density: "art",
   },
   {
     id: "fonts",
@@ -252,6 +253,7 @@ function CategoryGroup({
               "grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10",
             category.density === "mark" &&
               "grid-cols-4 gap-x-6 gap-y-8 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10",
+            category.density === "art" && "grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4",
             (category.density === "preview" || category.density === "specimen") &&
               "grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3",
           )}
@@ -277,6 +279,42 @@ function ResourceTile({ item, density }: { item: HomeCategoryItem; density: Cate
     to: "/$section/$name" as const,
     params: { section: getRegistrySectionIdForType(item.type), name: item.name },
   };
+
+  if (density === "art") {
+    return (
+      <div className="group relative">
+        {/* Soft canvas, no border: the drawing carries the tile. */}
+        <div className="grid aspect-[4/3] place-items-center overflow-hidden rounded-2xl bg-muted/50 px-8 py-6 transition-colors group-hover:bg-muted">
+          {Preview ? (
+            <div className="pointer-events-none w-full max-w-[180px] text-foreground select-none">
+              <Preview />
+            </div>
+          ) : (
+            <span className="text-xs text-muted-foreground">{item.title}</span>
+          )}
+        </div>
+
+        <Link
+          {...itemHref}
+          className="absolute inset-0 rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <span className="sr-only">{`Open ${item.title}`}</span>
+        </Link>
+
+        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+          <CopyButton
+            value={() => getDomainInstallCommand(item.domain, item.name, "npm")}
+            copyLabel={`Copy install command for ${item.title}`}
+            copiedLabel="Copied"
+            resetDelay={2000}
+            variant="ghost"
+            size="icon-sm"
+            className="rounded-full bg-background/85 backdrop-blur-sm hover:bg-background"
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (density === "mark") {
     return (
