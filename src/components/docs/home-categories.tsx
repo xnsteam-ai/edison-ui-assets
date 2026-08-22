@@ -25,6 +25,8 @@ export type HomeCategoryItem = {
   category?: string;
   prompt?: string;
   promptKind?: string;
+  assetWidth?: number;
+  assetHeight?: number;
 };
 
 /**
@@ -375,6 +377,8 @@ function ResourceTile({
             src={assetUrl}
             alt={item.description || item.title}
             loading="lazy"
+            width={item.assetWidth || undefined}
+            height={item.assetHeight || undefined}
             className="pointer-events-none block h-auto w-full select-none"
           />
         ) : (

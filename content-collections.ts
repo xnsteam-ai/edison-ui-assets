@@ -96,6 +96,9 @@ const registryNavigationItems = defineCollection({
       category: readMetaString(item.meta, "category"),
       prompt: readMetaString(item.meta, "prompt"),
       promptKind: readMetaString(item.meta, "promptKind"),
+      // Intrinsic size lets the masonry reserve the right box before a lazy image loads.
+      assetWidth: readMetaNumber(item.meta, "width"),
+      assetHeight: readMetaNumber(item.meta, "height"),
     };
   },
 });
@@ -135,4 +138,15 @@ function readMetaString(meta: unknown, field: string): string {
   const value = (meta as Record<string, unknown>)[field];
 
   return typeof value === "string" ? value : "";
+}
+
+/** Reads one numeric field out of an item's freeform `meta` map. */
+function readMetaNumber(meta: unknown, field: string): number {
+  if (typeof meta !== "object" || meta === null || Array.isArray(meta)) {
+    return 0;
+  }
+
+  const value = (meta as Record<string, unknown>)[field];
+
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }

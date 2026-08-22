@@ -30,6 +30,8 @@ function HomePage() {
     category: item.category,
     prompt: item.prompt,
     promptKind: item.promptKind,
+    assetWidth: item.assetWidth,
+    assetHeight: item.assetHeight,
   }));
 
   return (
