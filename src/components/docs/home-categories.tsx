@@ -396,9 +396,9 @@ function ItemGrid({
         density === "gallery" &&
           "block columns-[340px] gap-4 [&>li]:mb-4 [&>li]:break-inside-avoid",
         density === "card" &&
-          // 16px horizontal gap so hover elevation on one card never reads as touching its
+          // 20px horizontal gap so hover elevation on one card never reads as touching its
           // neighbour.
-          "grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-x-4 gap-y-10",
+          "grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-x-5 gap-y-10",
         density === "preview" && "grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3",
         // Type specimens and background surfaces need more room than a component tile.
         density === "specimen" && "grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-3",
