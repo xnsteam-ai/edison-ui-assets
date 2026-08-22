@@ -1,4 +1,4 @@
-import { IconDeviceDesktop, IconMoon, IconSun } from "@tabler/icons-react";
+import { IconBrightness, IconDeviceDesktop, IconMoon, IconSun } from "@tabler/icons-react";
 
 import { Button } from "../ui/button";
 import {
@@ -35,13 +35,11 @@ type ThemeToggleProps = {
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
-  const currentOption = themeOptions.find((option) => option.value === theme) ?? themeOptions[0];
-  const CurrentIcon = currentOption.icon;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className={className} />}>
-        <CurrentIcon />
+        <IconBrightness className="size-4.5" />
         <span className="sr-only">Toggle theme</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-44">
