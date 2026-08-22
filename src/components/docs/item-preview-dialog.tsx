@@ -54,10 +54,11 @@ type CanvasTheme = "light" | "dark";
 type CanvasSurface = "surface" | "canvas" | "grid";
 type Viewport = "desktop" | "tablet" | "mobile";
 
+// Token-based so they follow the canvas theme scope rather than the page's theme.
 const surfaces: Record<CanvasSurface, string> = {
-  surface: "bg-[#f9f9f9] dark:bg-[#141414]",
-  canvas: "bg-white dark:bg-black",
-  grid: "bg-[#f9f9f9] dark:bg-[#141414] [background-image:radial-gradient(currentColor_1px,transparent_1px)] [background-size:16px_16px] text-foreground/10",
+  surface: "bg-muted/50",
+  canvas: "bg-background",
+  grid: "bg-muted/50 [background-image:radial-gradient(color-mix(in_oklab,var(--color-foreground)_14%,transparent)_1px,transparent_1px)] [background-size:16px_16px] [background-position:center]",
 };
 
 const viewportWidths: Record<Viewport, string> = {
@@ -289,8 +290,8 @@ export function ItemPreviewDialog({
             <div
               data-theme={theme}
               className={cn(
-                "relative flex min-h-0 flex-1 items-center justify-center overflow-auto p-8",
-                theme === "dark" ? "dark" : "",
+                "relative flex min-h-0 flex-1 items-center justify-center overflow-auto p-8 text-foreground",
+                theme === "dark" ? "stark-canvas-dark" : "stark-canvas-light",
                 surfaces[surface],
               )}
             >
