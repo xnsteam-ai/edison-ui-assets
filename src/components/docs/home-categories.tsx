@@ -257,7 +257,7 @@ function CategoryGroup({
               "grid-cols-4 gap-x-6 gap-y-8 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10",
             category.density === "art" && "grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4",
             category.density === "card" &&
-              "grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4",
+              "grid-cols-1 gap-x-3 gap-y-10 sm:grid-cols-2 lg:grid-cols-3",
             (category.density === "preview" || category.density === "specimen") &&
               "grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3",
           )}
