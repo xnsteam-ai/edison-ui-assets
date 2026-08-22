@@ -305,9 +305,13 @@ function CategoryGroup({
           ))}
         </ul>
       ) : (
-        <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
-          {category.emptyHint}
-        </p>
+        // Sized like one tile of this category's grid, so an empty category reads at the same
+        // scale as a populated one instead of stretching to the full row.
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <p className="grid aspect-[4/3] place-items-center rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+            {category.emptyHint}
+          </p>
+        </div>
       )}
     </div>
   );
