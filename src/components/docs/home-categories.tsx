@@ -35,8 +35,9 @@ export type HomeCategoryItem = {
  * `mark`     — container-less squircle: the artwork is the tile, no card chrome.
  * `art`      — soft tinted panel, no border: line illustrations with room to breathe.
  * `card`     — thumbnail panel with the title and description set beneath it, no outer card.
+ * `gallery`  — masonry columns at each image's natural aspect ratio, nothing cropped.
  */
-type CategoryDensity = "preview" | "compact" | "specimen" | "mark" | "art" | "card";
+type CategoryDensity = "preview" | "compact" | "specimen" | "mark" | "art" | "card" | "gallery";
 
 type HomeCategory = {
   id: RegistryDomain;
@@ -131,7 +132,7 @@ const categories = [
     label: "Images",
     purpose: "Photography, textures, and curated visual assets.",
     emptyHint: "Images will appear here as they're published.",
-    density: "specimen",
+    density: "gallery",
   },
   {
     id: "videos",
@@ -309,6 +310,8 @@ function CategoryGroup({
             category.density === "mark" &&
               "grid-cols-4 gap-x-6 gap-y-8 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10",
             category.density === "art" && "grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4",
+            category.density === "gallery" &&
+              "block columns-1 gap-4 sm:columns-2 lg:columns-3 [&>li]:mb-4 [&>li]:break-inside-avoid",
             category.density === "card" &&
               "grid-cols-1 gap-x-3 gap-y-10 sm:grid-cols-2 lg:grid-cols-3",
             (category.density === "preview" || category.density === "specimen") &&
@@ -362,6 +365,52 @@ function ResourceTile({
       onOpen();
     },
   };
+
+  // Masonry cell: the image keeps its own aspect ratio, so the column flow does the layout.
+  if (density === "gallery") {
+    return (
+      <div className="group relative overflow-hidden rounded-xl bg-muted/30">
+        {assetUrl ? (
+          <img
+            src={assetUrl}
+            alt={item.description || item.title}
+            loading="lazy"
+            className="pointer-events-none block h-auto w-full select-none"
+          />
+        ) : (
+          <div className="grid aspect-[4/3] place-items-center text-xs text-muted-foreground">
+            No preview
+          </div>
+        )}
+
+        <Link
+          {...itemHref}
+          className="absolute inset-0 z-10 rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <span className="sr-only">{`Open ${item.title}`}</span>
+        </Link>
+
+        {/* Caption and actions stay hidden until hover so the wall reads as pure imagery. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-between gap-2 bg-gradient-to-t from-black/70 to-transparent p-3 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-xs font-medium text-white">{item.title}</span>
+            {item.category ? (
+              <span className="truncate text-[10px] text-white/70">{item.category}</span>
+            ) : null}
+          </div>
+          <CopyButton
+            value={() => getDomainInstallCommand(item.domain, item.name, "npm")}
+            copyLabel={`Copy install command for ${item.title}`}
+            copiedLabel="Copied"
+            resetDelay={2000}
+            variant="ghost"
+            size="icon-sm"
+            className="pointer-events-auto rounded-full bg-background/85 backdrop-blur-sm hover:bg-background"
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (density === "card") {
     return (
