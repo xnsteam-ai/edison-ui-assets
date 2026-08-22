@@ -20,10 +20,12 @@ export type HomeCategoryItem = {
 };
 
 /**
- * `preview` shows a large 4:3 tile with the live component rendered inside.
- * `compact` shows a dense grid of small square tiles, for icon-scale artwork.
+ * `preview`  — large 4:3 tile with the live component centred and scaled to fit.
+ * `compact`  — dense grid of small square tiles, for icon-scale artwork.
+ * `specimen` — full-bleed tile where the preview supplies its own background,
+ *              used for type specimens and media where the setting is the point.
  */
-type CategoryDensity = "preview" | "compact";
+type CategoryDensity = "preview" | "compact" | "specimen";
 
 type HomeCategory = {
   id: RegistryDomain;
@@ -94,21 +96,21 @@ const categories = [
     label: "Font",
     purpose: "Stark font families, weights, styles, and typography resources.",
     emptyHint: "Font families and typography resources will appear here as they're published.",
-    density: "preview",
+    density: "specimen",
   },
   {
     id: "images",
     label: "Images",
     purpose: "Photography, textures, and curated visual assets.",
     emptyHint: "Images will appear here as they're published.",
-    density: "preview",
+    density: "specimen",
   },
   {
     id: "videos",
     label: "Video",
     purpose: "Motion and video resources.",
     emptyHint: "Video resources will appear here as they're published.",
-    density: "preview",
+    density: "specimen",
   },
 ] as const satisfies readonly HomeCategory[];
 
@@ -311,12 +313,26 @@ function ResourceTile({ item, density }: { item: HomeCategoryItem; density: Cate
 
   return (
     <div className="group relative aspect-[4/3] overflow-hidden rounded-xl border bg-muted/30 transition-colors hover:border-foreground/20">
-      <div className="absolute inset-0 grid place-items-center overflow-hidden px-4 py-11">
+      <div
+        className={cn(
+          "absolute inset-0 overflow-hidden",
+          density === "specimen"
+            ? "[&>*]:h-full [&>*]:w-full"
+            : "grid place-items-center px-4 py-11",
+        )}
+      >
         {Preview ? (
-          // Fixed design width keeps previews from reflowing, then scales to fit the tile.
-          <div className="pointer-events-none w-[400px] shrink-0 scale-[0.62] select-none">
-            <Preview />
-          </div>
+          density === "specimen" ? (
+            // The preview supplies its own backdrop, so let it bleed to the tile edges.
+            <div className="pointer-events-none h-full w-full select-none [&>*]:h-full [&>*]:rounded-none">
+              <Preview />
+            </div>
+          ) : (
+            // Fixed design width keeps previews from reflowing, then scales to fit the tile.
+            <div className="pointer-events-none w-[400px] shrink-0 scale-[0.62] select-none">
+              <Preview />
+            </div>
+          )
         ) : (
           <span className="text-xs text-muted-foreground">No preview</span>
         )}

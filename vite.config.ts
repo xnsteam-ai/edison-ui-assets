@@ -108,6 +108,9 @@ const config = defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     globals: true,
+    // Registry items may publish .css files; without this Vitest stubs CSS to an
+    // empty string and the source-loading assertions see them as missing.
+    css: true,
   },
   clearScreen: false,
   build: {

@@ -3,6 +3,20 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono";
+/* Specimen faces for the Stark Fonts registry previews. */
+@import "@fontsource/playfair-display/400.css";
+@import "@fontsource/playfair-display/700.css";
+@import "@fontsource/bitter/500.css";
+@import "@fontsource/bitter/700.css";
+@import "@fontsource/caveat/400.css";
+@import "@fontsource/caveat/700.css";
+@import "@fontsource/fredoka/500.css";
+@import "@fontsource/fredoka/700.css";
+/* Backdrops authored in the font items, so their previews render as published. */
+@import "../registry/items/fonts/fonts/font-playfair-display/font-playfair-display-backdrop.css";
+@import "../registry/items/fonts/fonts/font-bitter/font-bitter-backdrop.css";
+@import "../registry/items/fonts/fonts/font-caveat/font-caveat-backdrop.css";
+@import "../registry/items/fonts/fonts/font-fredoka/font-fredoka-backdrop.css";
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
