@@ -84,7 +84,7 @@ function RevealControls({
           className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
         >
           Show more
-          <span className="font-mono text-[10px] opacity-70">
+          <span className="text-[11px] font-normal tracking-tight tabular-nums opacity-60">
             {Math.min(step, remaining)} of {remaining}
           </span>
         </button>
@@ -384,7 +384,7 @@ function CategoryGroup({
           <p className="text-sm text-muted-foreground">{category.purpose}</p>
         </div>
         {!category.groupByCategory && items.length > step ? (
-          <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+          <span className="shrink-0 text-[11px] font-normal tracking-tight text-muted-foreground/70 tabular-nums">
             {displayedItems.length} / {items.length}
           </span>
         ) : null}
@@ -451,7 +451,7 @@ function PaginatedCategorySubGroup({
         <h4 className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
           {group.label}
         </h4>
-        <span className="font-mono text-[10px] text-muted-foreground">
+        <span className="text-[11px] font-normal tracking-tight text-muted-foreground/70 tabular-nums">
           {displayedItems.length} / {group.items.length}
         </span>
       </div>
