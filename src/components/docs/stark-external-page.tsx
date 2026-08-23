@@ -77,6 +77,26 @@ export function StarkExternalPage({ entries }: Props) {
 
   const mirroredCount = entries.filter((entry) => entry.sourceKind === "mirrored").length;
 
+  // Counts follow the search query but not the active kind filter — a chip shows how many of that
+  // kind match what's typed, so switching between chips stays meaningful while searching.
+  const countsByKind = React.useMemo(() => {
+    const searched = normalizedQuery
+      ? entries.filter((entry) =>
+          `${entry.title} ${entry.description} ${entry.project} ${entry.tags} ${entry.author}`
+            .toLowerCase()
+            .includes(normalizedQuery),
+        )
+      : entries;
+
+    return {
+      all: searched.length,
+      mirrored: searched.filter((entry) => entry.sourceKind === "mirrored").length,
+      registry: searched.filter((entry) => entry.sourceKind === "registry").length,
+      package: searched.filter((entry) => entry.sourceKind === "package").length,
+      link: searched.filter((entry) => entry.sourceKind === "link").length,
+    };
+  }, [entries, normalizedQuery]);
+
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-8 px-4 py-12 sm:px-6 lg:px-8">
       <header className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
@@ -90,9 +110,9 @@ export function StarkExternalPage({ entries }: Props) {
             </Badge>
           </div>
           <p className="max-w-2xl text-sm text-muted-foreground">
-            The best external libraries and components built on shadcn/ui, in one index. Find what
-            you need here and copy the command that installs it — {mirroredCount} are mirrored into
-            this registry, the rest install straight from their own source.
+            {entries.length} external libraries and components built on shadcn/ui, in one index.
+            Find what you need here and copy the command that installs it — {mirroredCount} are
+            mirrored into this registry, the rest install straight from their own source.
           </p>
         </div>
 
@@ -119,6 +139,14 @@ export function StarkExternalPage({ entries }: Props) {
             className="rounded-full text-xs font-medium"
           >
             {filter.label}
+            <span
+              className={cn(
+                "ml-1.5 tabular-nums before:content-['('] after:content-[')']",
+                kind === filter.id ? "text-primary-foreground/70" : "text-muted-foreground",
+              )}
+            >
+              {countsByKind[filter.id]}
+            </span>
           </Button>
         ))}
       </div>
