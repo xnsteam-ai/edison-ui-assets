@@ -95,6 +95,56 @@ function PaginationControls({
   );
 }
 
+/**
+ * Progressive reveal for a long list. Paging through 30+ pages of ten logos is unusable, so a
+ * group instead shows one page, then grows in chunks, then collapses back in one click.
+ */
+function RevealControls({
+  shown,
+  total,
+  step,
+  onMore,
+  onReset,
+}: {
+  shown: number;
+  total: number;
+  step: number;
+  onMore: () => void;
+  onReset: () => void;
+}) {
+  const remaining = total - shown;
+
+  if (total <= step) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center justify-center gap-2 pt-1">
+      {remaining > 0 ? (
+        <button
+          type="button"
+          onClick={onMore}
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
+        >
+          Show more
+          <span className="font-mono text-[10px] opacity-70">
+            {Math.min(step, remaining)} of {remaining}
+          </span>
+        </button>
+      ) : null}
+      {shown > step ? (
+        <button
+          type="button"
+          onClick={onReset}
+          className="inline-flex cursor-pointer items-center rounded-full border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
+        >
+          Show less
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 type HomeCategory = {
   id: RegistryDomain;
   label: string;
@@ -427,17 +477,13 @@ function PaginatedCategorySubGroup({
   density: CategoryDensity;
   onOpen: (items: readonly HomeCategoryItem[], index: number) => void;
 }) {
-  const [page, setPage] = React.useState(1);
-  const pageSize = PAGE_SIZES[density] ?? 10;
-  const totalPages = Math.max(1, Math.ceil(group.items.length / pageSize));
-  const displayedItems = React.useMemo(
-    () => group.items.slice((page - 1) * pageSize, page * pageSize),
-    [group.items, page, pageSize],
-  );
+  const step = PAGE_SIZES[density] ?? 10;
+  const [shown, setShown] = React.useState(step);
+  const displayedItems = React.useMemo(() => group.items.slice(0, shown), [group.items, shown]);
 
   React.useEffect(() => {
-    setPage(1);
-  }, [group.items.length]);
+    setShown(step);
+  }, [group.items.length, step]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -445,17 +491,22 @@ function PaginatedCategorySubGroup({
         <h4 className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
           {group.label}
         </h4>
-        <PaginationControls
-          currentPage={page}
-          totalPages={totalPages}
-          onPrev={() => setPage((p) => Math.max(1, p - 1))}
-          onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
-        />
+        <span className="font-mono text-[10px] text-muted-foreground">
+          {displayedItems.length} / {group.items.length}
+        </span>
       </div>
+      {/* Index is taken against the full list, so the preview dialog can page past what is shown. */}
       <ItemGrid
         density={density}
         items={displayedItems}
-        onOpen={(itemIndex) => onOpen(group.items, (page - 1) * pageSize + itemIndex)}
+        onOpen={(itemIndex) => onOpen(group.items, itemIndex)}
+      />
+      <RevealControls
+        shown={displayedItems.length}
+        total={group.items.length}
+        step={step}
+        onMore={() => setShown((n) => Math.min(group.items.length, n + step * 4))}
+        onReset={() => setShown(step)}
       />
     </div>
   );
