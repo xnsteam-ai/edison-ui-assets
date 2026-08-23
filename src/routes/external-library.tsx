@@ -452,7 +452,7 @@ function ExternalLibraryPage() {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">
-                External Library
+                External
               </h1>
               <Badge variant="secondary" className="font-mono text-xs">
                 Curated

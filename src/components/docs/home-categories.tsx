@@ -114,9 +114,10 @@ const categories = [
   {
     id: "logos",
     label: "Logo",
-    purpose: "Stark logos, wordmarks, and brand symbols.",
+    purpose: "Original Stark logos, wordmarks, and brand symbols, grouped by the domain they suit.",
     emptyHint: "Logos and wordmarks will appear here as they're published.",
     density: "mark",
+    groupByCategory: true,
   },
   {
     id: "illustrations",

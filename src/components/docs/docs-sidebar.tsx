@@ -31,7 +31,7 @@ export function DocsSidebar({ sections, pathname, className, onNavigate }: DocsS
               : "text-muted-foreground",
           )}
         >
-          External Library
+          External
         </Link>
       </div>
 

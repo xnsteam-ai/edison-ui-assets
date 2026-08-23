@@ -18,10 +18,13 @@ export function SiteHeader() {
   });
   const [open, setOpen] = React.useState(false);
   const visibleSections = getSiteNavigationSections();
-  const isExternalLibrary =
-    pathname === "/external-library" || pathname.startsWith("/external-library/");
+  const isExternalPage =
+    pathname === "/external-library" ||
+    pathname.startsWith("/external-library/") ||
+    pathname === "/external" ||
+    pathname.startsWith("/external/");
 
-  if (isExternalLibrary) {
+  if (isExternalPage) {
     return (
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="mx-auto flex h-14 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -105,7 +108,7 @@ export function SiteHeader() {
                 : "text-muted-foreground",
             )}
           >
-            External Library
+            External
           </Link>
           {/* Stark External — the 10th registry. Distinct from the External Library page above. */}
           <Link
