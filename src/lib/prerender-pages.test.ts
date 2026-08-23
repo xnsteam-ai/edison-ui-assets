@@ -87,10 +87,17 @@ describe("prerender pages", () => {
     }
 
     for (const item of registryItems) {
+      // The installable JSON is static for every item without exception.
       expect(paths).toContain(getCanonicalRegistryItemPath(item.name));
 
       for (const aliasPath of getAliasRegistryItemPaths(item.name)) {
         expect(paths).toContain(aliasPath);
+      }
+
+      // Artwork registries render their docs pages on demand — prerendering hundreds of
+      // near-identical pages pushed the production build past its time limit.
+      if (item.registryDomain === "logos" || item.registryDomain === "icons") {
+        continue;
       }
 
       const itemPath = getRegistryItemRoutePath(item);

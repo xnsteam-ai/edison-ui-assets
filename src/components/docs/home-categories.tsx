@@ -1,6 +1,11 @@
 "use client";
 
-import { IconArrowUpRight, IconSearch } from "@tabler/icons-react";
+import {
+  IconArrowUpRight,
+  IconChevronLeft,
+  IconChevronRight,
+  IconSearch,
+} from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 import * as React from "react";
 
@@ -41,6 +46,54 @@ export type HomeCategoryItem = {
  * `gallery`  — masonry columns at each image's natural aspect ratio, nothing cropped.
  */
 type CategoryDensity = "preview" | "compact" | "specimen" | "mark" | "art" | "card" | "gallery";
+
+const PAGE_SIZES: Record<CategoryDensity, number> = {
+  compact: 24, // 24 icons per page
+  mark: 10, // 10 brand logos per page
+  card: 3, // 3 template cards per page
+  preview: 6, // 6 component preview cards per page
+  art: 4, // 4 illustration cards per page
+  specimen: 4, // 4 font/background specimens per page
+  gallery: 6, // 6 photography/image tiles per page
+};
+
+function PaginationControls({
+  currentPage,
+  totalPages,
+  onPrev,
+  onNext,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <div className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-neutral-900/90 px-2 py-0.5 text-xs text-neutral-300 shadow-xs dark:bg-neutral-800/90">
+      <button
+        type="button"
+        onClick={onPrev}
+        disabled={currentPage <= 1}
+        className="flex size-5 cursor-pointer items-center justify-center rounded text-neutral-400 transition-colors hover:text-white disabled:pointer-events-none disabled:opacity-25"
+        aria-label="Previous page"
+      >
+        <IconChevronLeft className="size-3.5" />
+      </button>
+      <span className="min-w-[34px] text-center font-mono text-[11px] font-medium text-white/90 select-none">
+        {currentPage} of {Math.max(1, totalPages)}
+      </span>
+      <button
+        type="button"
+        onClick={onNext}
+        disabled={currentPage >= totalPages}
+        className="flex size-5 cursor-pointer items-center justify-center rounded text-neutral-400 transition-colors hover:text-white disabled:pointer-events-none disabled:opacity-25"
+        aria-label="Next page"
+      >
+        <IconChevronRight className="size-3.5" />
+      </button>
+    </div>
+  );
+}
 
 type HomeCategory = {
   id: RegistryDomain;
@@ -304,35 +357,53 @@ function CategoryGroup({
   isSearching: boolean;
   onOpen: (items: readonly HomeCategoryItem[], index: number) => void;
 }) {
+  const [page, setPage] = React.useState(1);
+  const pageSize = PAGE_SIZES[category.density] ?? 6;
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const displayedItems = React.useMemo(
+    () => items.slice((page - 1) * pageSize, page * pageSize),
+    [items, page, pageSize],
+  );
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [items.length]);
+
   if (isSearching && items.length === 0) {
     return null;
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-medium">{category.label}</h3>
-        <p className="text-sm text-muted-foreground">{category.purpose}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h3 className="text-sm font-medium">{category.label}</h3>
+          <p className="text-sm text-muted-foreground">{category.purpose}</p>
+        </div>
+        {!category.groupByCategory && items.length > 0 && (
+          <PaginationControls
+            currentPage={page}
+            totalPages={totalPages}
+            onPrev={() => setPage((p) => Math.max(1, p - 1))}
+            onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+          />
+        )}
       </div>
 
       {items.length > 0 && category.groupByCategory ? (
         getItemCategoryGroups(items).map((group) => (
-          <div key={group.label} className="flex flex-col gap-3">
-            <h4 className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-              {group.label}
-            </h4>
-            <ItemGrid
-              density={category.density}
-              items={group.items}
-              onOpen={(itemIndex) => onOpen(group.items, itemIndex)}
-            />
-          </div>
+          <PaginatedCategorySubGroup
+            key={group.label}
+            group={group}
+            density={category.density}
+            onOpen={onOpen}
+          />
         ))
       ) : items.length > 0 ? (
         <ItemGrid
           density={category.density}
-          items={items}
-          onOpen={(itemIndex) => onOpen(items, itemIndex)}
+          items={displayedItems}
+          onOpen={(itemIndex) => onOpen(items, (page - 1) * pageSize + itemIndex)}
         />
       ) : (
         // Sized like one tile of this category's grid, so an empty category reads at the same
@@ -343,6 +414,49 @@ function CategoryGroup({
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+function PaginatedCategorySubGroup({
+  group,
+  density,
+  onOpen,
+}: {
+  group: { label: string; items: HomeCategoryItem[] };
+  density: CategoryDensity;
+  onOpen: (items: readonly HomeCategoryItem[], index: number) => void;
+}) {
+  const [page, setPage] = React.useState(1);
+  const pageSize = PAGE_SIZES[density] ?? 10;
+  const totalPages = Math.max(1, Math.ceil(group.items.length / pageSize));
+  const displayedItems = React.useMemo(
+    () => group.items.slice((page - 1) * pageSize, page * pageSize),
+    [group.items, page, pageSize],
+  );
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [group.items.length]);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+          {group.label}
+        </h4>
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          onPrev={() => setPage((p) => Math.max(1, p - 1))}
+          onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+        />
+      </div>
+      <ItemGrid
+        density={density}
+        items={displayedItems}
+        onOpen={(itemIndex) => onOpen(group.items, (page - 1) * pageSize + itemIndex)}
+      />
     </div>
   );
 }

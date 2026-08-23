@@ -3,7 +3,12 @@ import { relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { getDocsRoutePathFromSourcePath } from "./docs/catalog-core.ts";
-import { registryCatalog, registryDomains, type RegistryItemType } from "./registry/item-types.ts";
+import {
+  registryCatalog,
+  registryDomains,
+  type RegistryDomain,
+  type RegistryItemType,
+} from "./registry/item-types.ts";
 import { parseRegistryMdx } from "./registry/mdx.ts";
 import { getRegistryDomainFromPath } from "./registry/paths.ts";
 import { getRegistryItemRoutePath, getRegistrySectionsWithItems } from "./registry/sections.ts";
@@ -35,6 +40,12 @@ type PrerenderPagesInput = {
   docsPagePaths: readonly string[];
   registryItems: readonly RegistryPrerenderItem[];
 };
+
+/**
+ * Domains whose item docs pages are rendered on demand rather than prerendered. These are pure
+ * artwork registries with hundreds of items; their JSON stays static, only the HTML is deferred.
+ */
+const skipPagePrerenderDomains = new Set<RegistryDomain>(["logos", "icons"]);
 
 const docsRoot = fileURLToPath(new URL("../../registry/docs", import.meta.url));
 const registryItemsRoot = fileURLToPath(new URL("../../registry/items", import.meta.url));
@@ -84,9 +95,17 @@ export function createPrerenderPages({
   }
 
   for (const item of registryItems) {
+    // The installable JSON is always static — that is the registry itself.
     addPath(getCanonicalRegistryItemPath(item.name));
     addPath(getCanonicalDomainRegistryItemPath(item.domain, item.name));
     getAliasRegistryItemPaths(item.name).forEach(addPath);
+
+    // Docs pages are not. Each one is a full RSC render with syntax highlighting, and the logo
+    // registry alone carries hundreds of near-identical pages — prerendering them all pushed the
+    // production build past its time limit. They render on demand instead.
+    if (skipPagePrerenderDomains.has(item.domain)) {
+      continue;
+    }
 
     const itemPath = getRegistryItemRoutePath(item);
 
