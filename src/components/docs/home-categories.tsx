@@ -668,7 +668,11 @@ function ResourceTile({
     return (
       <div className="group relative">
         {/* Soft canvas, no border: the drawing carries the tile. */}
-        <div className="grid aspect-[4/3] place-items-center overflow-hidden rounded-2xl bg-muted/50 px-8 py-6 transition-colors group-hover:bg-muted">
+        {/*
+          Illustration ink is a near-black line, so the panel stays light in both themes — on the
+          dark canvas a muted surface rendered the artwork almost invisible.
+        */}
+        <div className="grid aspect-[4/3] place-items-center overflow-hidden rounded-2xl bg-neutral-50 px-8 py-6 transition-colors group-hover:bg-white dark:bg-neutral-100 dark:group-hover:bg-white">
           {Preview ? (
             <div className="pointer-events-none w-full max-w-[180px] text-foreground select-none">
               <Preview />
