@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  IconArrowUpRight,
-  IconChevronLeft,
-  IconChevronRight,
-  IconSearch,
-} from "@tabler/icons-react";
+import { IconArrowUpRight, IconSearch } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 import * as React from "react";
 
@@ -56,44 +51,6 @@ const PAGE_SIZES: Record<CategoryDensity, number> = {
   specimen: 4, // 4 font/background specimens per page
   gallery: 6, // 6 photography/image tiles per page
 };
-
-function PaginationControls({
-  currentPage,
-  totalPages,
-  onPrev,
-  onNext,
-}: {
-  currentPage: number;
-  totalPages: number;
-  onPrev: () => void;
-  onNext: () => void;
-}) {
-  return (
-    <div className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-neutral-900/90 px-2 py-0.5 text-xs text-neutral-300 shadow-xs dark:bg-neutral-800/90">
-      <button
-        type="button"
-        onClick={onPrev}
-        disabled={currentPage <= 1}
-        className="flex size-5 cursor-pointer items-center justify-center rounded text-neutral-400 transition-colors hover:text-white disabled:pointer-events-none disabled:opacity-25"
-        aria-label="Previous page"
-      >
-        <IconChevronLeft className="size-3.5" />
-      </button>
-      <span className="min-w-[34px] text-center font-mono text-[11px] font-medium text-white/90 select-none">
-        {currentPage} of {Math.max(1, totalPages)}
-      </span>
-      <button
-        type="button"
-        onClick={onNext}
-        disabled={currentPage >= totalPages}
-        className="flex size-5 cursor-pointer items-center justify-center rounded text-neutral-400 transition-colors hover:text-white disabled:pointer-events-none disabled:opacity-25"
-        aria-label="Next page"
-      >
-        <IconChevronRight className="size-3.5" />
-      </button>
-    </div>
-  );
-}
 
 /**
  * Progressive reveal for a long list. Paging through 30+ pages of ten logos is unusable, so a
@@ -407,17 +364,13 @@ function CategoryGroup({
   isSearching: boolean;
   onOpen: (items: readonly HomeCategoryItem[], index: number) => void;
 }) {
-  const [page, setPage] = React.useState(1);
-  const pageSize = PAGE_SIZES[category.density] ?? 6;
-  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
-  const displayedItems = React.useMemo(
-    () => items.slice((page - 1) * pageSize, page * pageSize),
-    [items, page, pageSize],
-  );
+  const step = PAGE_SIZES[category.density] ?? 6;
+  const [shown, setShown] = React.useState(step);
+  const displayedItems = React.useMemo(() => items.slice(0, shown), [items, shown]);
 
   React.useEffect(() => {
-    setPage(1);
-  }, [items.length]);
+    setShown(step);
+  }, [items.length, step]);
 
   if (isSearching && items.length === 0) {
     return null;
@@ -430,14 +383,11 @@ function CategoryGroup({
           <h3 className="text-sm font-medium">{category.label}</h3>
           <p className="text-sm text-muted-foreground">{category.purpose}</p>
         </div>
-        {!category.groupByCategory && items.length > 0 && (
-          <PaginationControls
-            currentPage={page}
-            totalPages={totalPages}
-            onPrev={() => setPage((p) => Math.max(1, p - 1))}
-            onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
-          />
-        )}
+        {!category.groupByCategory && items.length > step ? (
+          <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+            {displayedItems.length} / {items.length}
+          </span>
+        ) : null}
       </div>
 
       {items.length > 0 && category.groupByCategory ? (
@@ -450,11 +400,21 @@ function CategoryGroup({
           />
         ))
       ) : items.length > 0 ? (
-        <ItemGrid
-          density={category.density}
-          items={displayedItems}
-          onOpen={(itemIndex) => onOpen(items, (page - 1) * pageSize + itemIndex)}
-        />
+        <>
+          {/* Index against the full list so the dialog can page past what is revealed. */}
+          <ItemGrid
+            density={category.density}
+            items={displayedItems}
+            onOpen={(itemIndex) => onOpen(items, itemIndex)}
+          />
+          <RevealControls
+            shown={displayedItems.length}
+            total={items.length}
+            step={step}
+            onMore={() => setShown((n) => Math.min(items.length, n + step * 4))}
+            onReset={() => setShown(step)}
+          />
+        </>
       ) : (
         // Sized like one tile of this category's grid, so an empty category reads at the same
         // scale as a populated one instead of stretching to the full row.

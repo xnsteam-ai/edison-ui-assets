@@ -31,6 +31,8 @@
     "@fontsource/caveat": "^5.3.0",
     "@fontsource/fredoka": "^5.3.0",
     "@fontsource/playfair-display": "^5.3.0",
+    "@hugeicons/core-free-icons": "^4.3.0",
+    "@hugeicons/react": "^1.1.10",
     "@mdx-js/rollup": "^3.1.1",
     "@orama/orama": "^3.1.18",
     "@shikijs/core": "^4.0.2",
