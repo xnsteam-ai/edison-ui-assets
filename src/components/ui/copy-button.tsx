@@ -86,7 +86,7 @@ function CopyButton({
       ) : (
         <IconCopy aria-hidden="true" data-icon={showLabel ? "inline-start" : undefined} />
       )}
-      {showLabel && <span>{copied ? copiedLabel : copyLabel}</span>}
+      {showLabel && <span className="truncate">{copied ? copiedLabel : copyLabel}</span>}
     </Button>
   );
 }

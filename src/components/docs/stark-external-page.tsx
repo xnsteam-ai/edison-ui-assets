@@ -222,16 +222,24 @@ function ExternalCard({ entry }: { entry: ExternalEntry }) {
               {command}
             </code>
             <div className="flex items-center gap-2">
-              <CopyButton
-                value={command}
-                copyLabel={`Copy install command for ${entry.title}`}
-                copiedLabel="Copied"
-                resetDelay={2000}
-                variant="outline"
-                size="sm"
-                showLabel
-                className="flex-1"
-              />
+              {/*
+                Button ships `shrink-0` as a base class, so handing it `flex-1` directly left it
+                fighting its own base style at equal specificity — the label could win and push
+                the row past the card's edge. A wrapper div has no such base class, so `min-w-0`
+                here actually lets the button (and its truncating label) shrink to fit.
+              */}
+              <div className="min-w-0 flex-1">
+                <CopyButton
+                  value={command}
+                  copyLabel={`Copy install command for ${entry.title}`}
+                  copiedLabel="Copied"
+                  resetDelay={2000}
+                  variant="outline"
+                  size="sm"
+                  showLabel
+                  className="w-full"
+                />
+              </div>
               <SourceLink entry={entry} />
             </div>
           </>
