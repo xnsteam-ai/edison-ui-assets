@@ -45,7 +45,40 @@ function getStoredTheme(storageKey: string, defaultTheme: Theme): Theme {
   return isTheme(storedTheme) ? storedTheme : defaultTheme;
 }
 
-function applyTheme(theme: Theme) {
+function disableTransitions() {
+  if (typeof document === "undefined") {
+    return () => {};
+  }
+
+  const css = document.createElement("style");
+  css.setAttribute("type", "text/css");
+  css.appendChild(
+    document.createTextNode(
+      "*,*::before,*::after{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}",
+    ),
+  );
+  document.head.appendChild(css);
+
+  return () => {
+    // Force browser reflow so new styles calculate instantly
+    (() => window.getComputedStyle(document.body))();
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (document.head.contains(css)) {
+          document.head.removeChild(css);
+        }
+      });
+    });
+  };
+}
+
+function applyTheme(theme: Theme, disableTransition = true) {
+  if (typeof document === "undefined") {
+    return theme === "system" ? "light" : theme;
+  }
+
+  const enableTransitions = disableTransition ? disableTransitions() : () => {};
   const resolvedTheme = getResolvedTheme(theme);
   const root = document.documentElement;
 
@@ -53,6 +86,8 @@ function applyTheme(theme: Theme) {
   root.classList.add(resolvedTheme);
   root.style.colorScheme = resolvedTheme;
   root.dataset.theme = theme;
+
+  enableTransitions();
 
   return resolvedTheme;
 }
@@ -69,46 +104,50 @@ export function ThemeProvider({
   defaultTheme = "system",
   storageKey = THEME_STORAGE_KEY,
 }: ThemeProviderProps) {
-  const [theme, setThemeState] = React.useState<Theme>(defaultTheme);
-  const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(
-    defaultTheme === "dark" ? "dark" : "light",
+  const [theme, setThemeState] = React.useState<Theme>(() =>
+    getStoredTheme(storageKey, defaultTheme),
   );
-  const [mounted, setMounted] = React.useState(false);
+  const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(() =>
+    getResolvedTheme(getStoredTheme(storageKey, defaultTheme)),
+  );
 
   const setTheme = React.useCallback(
     (nextTheme: Theme) => {
-      window.localStorage.setItem(storageKey, nextTheme);
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(storageKey, nextTheme);
+        } catch {
+          // Ignore local storage errors
+        }
+      }
+      const resolved = applyTheme(nextTheme, true);
       setThemeState(nextTheme);
+      setResolvedTheme(resolved);
     },
     [storageKey],
   );
 
   React.useEffect(() => {
     const storedTheme = getStoredTheme(storageKey, defaultTheme);
+    const resolved = applyTheme(storedTheme, false);
     setThemeState(storedTheme);
-    setResolvedTheme(getResolvedTheme(storedTheme));
-    setMounted(true);
+    setResolvedTheme(resolved);
   }, [defaultTheme, storageKey]);
 
   React.useEffect(() => {
-    if (!mounted) {
+    if (theme !== "system") {
       return undefined;
     }
 
-    setResolvedTheme(applyTheme(theme));
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = () => {
+      const resolved = applyTheme("system", true);
+      setResolvedTheme(resolved);
+    };
 
-    let cleanup: (() => void) | undefined;
-
-    if (theme === "system") {
-      const media = window.matchMedia("(prefers-color-scheme: dark)");
-      const handleChange = () => setResolvedTheme(applyTheme("system"));
-
-      media.addEventListener("change", handleChange);
-      cleanup = () => media.removeEventListener("change", handleChange);
-    }
-
-    return cleanup;
-  }, [theme, mounted]);
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, [theme]);
 
   const value = React.useMemo(
     () => ({ theme, resolvedTheme, setTheme }),

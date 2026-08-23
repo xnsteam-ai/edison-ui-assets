@@ -65,6 +65,10 @@ export function createPrerenderPages({
   addPath(registryCatalog.basePath);
   addPath(getDocsMarkdownPath(registryCatalog.basePath));
 
+  // Stark External's catalog page. It lives outside the docs/registry route trees, so nothing else
+  // in this function would pick it up.
+  addPath("/external");
+
   for (const section of getRegistrySectionsWithItems(registryItems)) {
     addPath(section.basePath);
     addPath(getDocsMarkdownPath(section.basePath));

@@ -1,33 +1,27 @@
-import { IconBrightness, IconDeviceDesktop, IconMoon, IconSun } from "@tabler/icons-react";
+import { IconBrightness, IconMoon, IconSun } from "@tabler/icons-react";
+import * as React from "react";
 
+import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useTheme } from "./theme-provider";
 
-const themeOptions = [
-  {
-    value: "system",
+const themeOrder = ["system", "light", "dark"] as const;
+
+const themeDetails = {
+  system: {
     label: "System",
-    icon: IconDeviceDesktop,
+    icon: IconBrightness,
   },
-  {
-    value: "light",
+  light: {
     label: "Light",
     icon: IconSun,
   },
-  {
-    value: "dark",
+  dark: {
     label: "Dark",
     icon: IconMoon,
   },
-] as const;
+} as const;
 
 type ThemeToggleProps = {
   className?: string;
@@ -36,32 +30,35 @@ type ThemeToggleProps = {
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
 
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className={className} />}>
-        <IconBrightness className="size-4.5" />
-        <span className="sr-only">Toggle theme</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-44">
-        <DropdownMenuGroup>
-          <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-            {themeOptions.map((option) => {
-              const Icon = option.icon;
+  const current = themeDetails[theme] ?? themeDetails.system;
+  const Icon = current.icon;
 
-              return (
-                <DropdownMenuRadioItem
-                  key={option.value}
-                  value={option.value}
-                  className="cursor-pointer gap-2 px-2 py-1.5 [&_svg:not([class*='text-'])]:text-muted-foreground"
-                >
-                  <Icon data-icon="inline-start" />
-                  {option.label}
-                </DropdownMenuRadioItem>
-              );
-            })}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+  const handleCycleTheme = React.useCallback(() => {
+    const currentIndex = themeOrder.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % themeOrder.length;
+    setTheme(themeOrder[nextIndex]);
+  }, [theme, setTheme]);
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn("transition-none duration-0", className)}
+            onClick={handleCycleTheme}
+            aria-label={`Current theme: ${current.label}. Click to switch theme.`}
+          />
+        }
+      >
+        <Icon className="size-4.5 transition-none duration-0" />
+        <span className="sr-only">Toggle theme ({current.label})</span>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="animate-none transition-none duration-0">
+        <span>Theme: {current.label}</span>
+      </TooltipContent>
+    </Tooltip>
   );
 }

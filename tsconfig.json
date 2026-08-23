@@ -1,5 +1,11 @@
 {
   "include": ["**/*.ts", "**/*.tsx"],
+  /*
+   * Mirrored third-party source. It is published verbatim for a consumer's project — it targets
+   * their dependency tree (lucide-react, date-fns, their own ui/drawer), not ours. Typechecking it
+   * here would only tempt us to edit code we are redistributing under someone else's copyright.
+   */
+  "exclude": ["registry/items/external/**"],
   "compilerOptions": {
     "target": "ES2023",
     "jsx": "react-jsx",

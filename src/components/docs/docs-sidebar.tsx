@@ -21,6 +21,18 @@ export function DocsSidebar({ sections, pathname, className, onNavigate }: DocsS
         >
           Home
         </Link>
+        <Link
+          to="/external-library"
+          onClick={onNavigate}
+          className={cn(
+            "rounded-md px-3 py-1.5 text-sm transition-colors hover:text-foreground",
+            pathname === "/external-library" || pathname.startsWith("/external-library/")
+              ? "bg-accent font-medium text-accent-foreground"
+              : "text-muted-foreground",
+          )}
+        >
+          External Library
+        </Link>
       </div>
 
       {sections.map((section) => (

@@ -15,6 +15,8 @@ import { Route as RegistryDotmdRouteImport } from './routes/registry[.]md'
 import { Route as RegistryDotjsonRouteImport } from './routes/registry[.]json'
 import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as LlmsFullDottxtRouteImport } from './routes/llms-full[.]txt'
+import { Route as ExternalLibraryRouteImport } from './routes/external-library'
+import { Route as ExternalRouteImport } from './routes/external'
 import { Route as DocsDotmdRouteImport } from './routes/docs[.]md'
 import { Route as ComponentsDotmdRouteImport } from './routes/components[.]md'
 import { Route as BlocksDotmdRouteImport } from './routes/blocks[.]md'
@@ -62,6 +64,16 @@ const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
 const LlmsFullDottxtRoute = LlmsFullDottxtRouteImport.update({
   id: '/llms-full.txt',
   path: '/llms-full.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExternalLibraryRoute = ExternalLibraryRouteImport.update({
+  id: '/external-library',
+  path: '/external-library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExternalRoute = ExternalRouteImport.update({
+  id: '/external',
+  path: '/external',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsDotmdRoute = DocsDotmdRouteImport.update({
@@ -166,6 +178,8 @@ export interface FileRoutesByFullPath {
   '/blocks.md': typeof BlocksDotmdRoute
   '/components.md': typeof ComponentsDotmdRoute
   '/docs.md': typeof DocsDotmdRoute
+  '/external': typeof ExternalRoute
+  '/external-library': typeof ExternalLibraryRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/registry.json': typeof RegistryDotjsonRoute
@@ -192,6 +206,8 @@ export interface FileRoutesByTo {
   '/blocks.md': typeof BlocksDotmdRoute
   '/components.md': typeof ComponentsDotmdRoute
   '/docs.md': typeof DocsDotmdRoute
+  '/external': typeof ExternalRoute
+  '/external-library': typeof ExternalLibraryRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/registry.json': typeof RegistryDotjsonRoute
@@ -219,6 +235,8 @@ export interface FileRoutesById {
   '/blocks.md': typeof BlocksDotmdRoute
   '/components.md': typeof ComponentsDotmdRoute
   '/docs.md': typeof DocsDotmdRoute
+  '/external': typeof ExternalRoute
+  '/external-library': typeof ExternalLibraryRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/registry.json': typeof RegistryDotjsonRoute
@@ -247,6 +265,8 @@ export interface FileRouteTypes {
     | '/blocks.md'
     | '/components.md'
     | '/docs.md'
+    | '/external'
+    | '/external-library'
     | '/llms-full.txt'
     | '/llms.txt'
     | '/registry.json'
@@ -273,6 +293,8 @@ export interface FileRouteTypes {
     | '/blocks.md'
     | '/components.md'
     | '/docs.md'
+    | '/external'
+    | '/external-library'
     | '/llms-full.txt'
     | '/llms.txt'
     | '/registry.json'
@@ -299,6 +321,8 @@ export interface FileRouteTypes {
     | '/blocks.md'
     | '/components.md'
     | '/docs.md'
+    | '/external'
+    | '/external-library'
     | '/llms-full.txt'
     | '/llms.txt'
     | '/registry.json'
@@ -326,6 +350,8 @@ export interface RootRouteChildren {
   BlocksDotmdRoute: typeof BlocksDotmdRoute
   ComponentsDotmdRoute: typeof ComponentsDotmdRoute
   DocsDotmdRoute: typeof DocsDotmdRoute
+  ExternalRoute: typeof ExternalRoute
+  ExternalLibraryRoute: typeof ExternalLibraryRoute
   LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
   LlmsDottxtRoute: typeof LlmsDottxtRoute
   RegistryDotjsonRoute: typeof RegistryDotjsonRoute
@@ -390,6 +416,20 @@ declare module '@tanstack/react-router' {
       path: '/llms-full.txt'
       fullPath: '/llms-full.txt'
       preLoaderRoute: typeof LlmsFullDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/external-library': {
+      id: '/external-library'
+      path: '/external-library'
+      fullPath: '/external-library'
+      preLoaderRoute: typeof ExternalLibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/external': {
+      id: '/external'
+      path: '/external'
+      fullPath: '/external'
+      preLoaderRoute: typeof ExternalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs.md': {
@@ -526,6 +566,8 @@ const rootRouteChildren: RootRouteChildren = {
   BlocksDotmdRoute: BlocksDotmdRoute,
   ComponentsDotmdRoute: ComponentsDotmdRoute,
   DocsDotmdRoute: DocsDotmdRoute,
+  ExternalRoute: ExternalRoute,
+  ExternalLibraryRoute: ExternalLibraryRoute,
   LlmsFullDottxtRoute: LlmsFullDottxtRoute,
   LlmsDottxtRoute: LlmsDottxtRoute,
   RegistryDotjsonRoute: RegistryDotjsonRoute,

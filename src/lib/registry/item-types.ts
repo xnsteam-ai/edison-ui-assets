@@ -66,6 +66,7 @@ export const registryDomains = [
   "images",
   "videos",
   "backgrounds",
+  "external",
 ] as const;
 
 export type RegistryDomain = (typeof registryDomains)[number];

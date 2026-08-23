@@ -1,4 +1,4 @@
-import { IconBrandGithub, IconMenu2 } from "@tabler/icons-react";
+import { IconArrowLeft, IconBrandGithub, IconMenu2 } from "@tabler/icons-react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import * as React from "react";
 
@@ -18,6 +18,53 @@ export function SiteHeader() {
   });
   const [open, setOpen] = React.useState(false);
   const visibleSections = getSiteNavigationSections();
+  const isExternalLibrary =
+    pathname === "/external-library" || pathname.startsWith("/external-library/");
+
+  if (isExternalLibrary) {
+    return (
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+        <div className="mx-auto flex h-14 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2">
+            {/* Back Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              render={<Link to="/" />}
+              aria-label="Back to home"
+            >
+              <IconArrowLeft className="size-4" />
+            </Button>
+
+            {/* App Logo & Name */}
+            <Link to="/" className="flex items-center gap-2.5">
+              <RegistryLogo className="size-5 shrink-0" aria-hidden="true" />
+              <span className="font-mono text-sm font-semibold tracking-tighter">
+                {siteConfig.name}
+              </span>
+            </Link>
+          </div>
+
+          {/* Right Controls: GitHub, Theme Toggle */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              nativeButton={false}
+              render={
+                <a href={siteConfig.repositoryUrl} target="_blank" rel="noopener noreferrer" />
+              }
+            >
+              <IconBrandGithub data-icon />
+              <span className="sr-only">GitHub</span>
+            </Button>
+            <ThemeToggle />
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -49,6 +96,29 @@ export function SiteHeader() {
           {visibleSections.map((section) => (
             <HeaderSectionLink key={section.id} section={section} pathname={pathname} />
           ))}
+          <Link
+            to="/external-library"
+            className={cn(
+              "rounded-md px-3 py-1.5 text-sm transition-colors hover:text-foreground",
+              pathname === "/external-library" || pathname.startsWith("/external-library/")
+                ? "text-foreground"
+                : "text-muted-foreground",
+            )}
+          >
+            External Library
+          </Link>
+          {/* Stark External — the 10th registry. Distinct from the External Library page above. */}
+          <Link
+            to="/external"
+            className={cn(
+              "rounded-md px-3 py-1.5 text-sm transition-colors hover:text-foreground",
+              pathname === "/external" || pathname.startsWith("/external/")
+                ? "text-foreground"
+                : "text-muted-foreground",
+            )}
+          >
+            Stark External
+          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-1">

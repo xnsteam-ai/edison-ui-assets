@@ -102,6 +102,17 @@ const registryNavigationItems = defineCollection({
       // Intrinsic size lets the masonry reserve the right box before a lazy image loads.
       assetWidth: readMetaNumber(item.meta, "width"),
       assetHeight: readMetaNumber(item.meta, "height"),
+      // Stark External entries: how the project is distributed, and the command that actually
+      // installs it. Only mirrored items resolve through our own namespace.
+      sourceKind: readMetaString(item.meta, "sourceKind"),
+      project: readMetaString(item.meta, "project"),
+      author: readMetaString(item.meta, "author"),
+      license: readMetaString(item.meta, "license"),
+      sourceUrl: readMetaString(item.meta, "sourceUrl"),
+      externalHomepage: readMetaString(item.meta, "homepage"),
+      tags: readMetaString(item.meta, "tags"),
+      command: readMetaString(item.meta, "command"),
+      note: readMetaString(item.meta, "note"),
     };
   },
 });
